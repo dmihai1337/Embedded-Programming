@@ -1,0 +1,151 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% packages
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{placeins}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{geometry}
+
+
+\geometry{
+a4paper,
+total={165mm,240mm},
+left=20mm,
+top=30mm,
+}
+
+
+\renewcommand{\floatpagefraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\setcounter{totalnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{topnumber}{3}
+
+\setlength{\unitlength}{1mm}
+\setlength{\parindent}{6mm}
+%\setlength{\parskip}{12pt plus2pt minus2pt}
+
+\newcounter{questioncounter}
+
+\newcommand*\ruleline[1]{\par\noindent\raisebox{.8ex}{\makebox[\linewidth]{\hrulefill\hspace{1ex}\raisebox{-.8ex}{#1}\hspace{1ex}\hrulefill}}}
+
+\newenvironment{qa}[1]{
+\stepcounter{questioncounter}
+\noindent
+\begin{center}
+\noindent\ruleline{\textbf{Subtask \arabic{questioncounter}}}
+\end{center}
+#1
+\smallskip
+\begin{spacing}{0.05}
+\noindent
+\rule{\linewidth}{0.25mm}\\
+\rule{\linewidth}{0.25mm}\\
+\end{spacing}
+\bigskip
+}{
+\vspace{0.5em}
+\FloatBarrier
+\noindent\ruleline{END Subtask \arabic{questioncounter}}
+}
+
+
+\lstnewenvironment{icode}[1][]
+{
+  \vskip 3mm
+  \lstset{#1,captionpos=b,basicstyle=\scriptsize,numbers=left,numberstyle=\tiny,stepnumber=1,
+    framexleftmargin=8mm,xleftmargin=8mm,frame=tb}}
+{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% define variables used on titlepage
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\setcounter{footnote}{0} 
+
+% initialize variables
+\newcommand{\varHeadline}{Digital Design and Computer Architecture LU}
+\newcommand{\varSubtitle}{Lab Protocol}
+\newcommand{\varExercise}{}
+\newcommand{\varAuthors}{}
+
+\newcommand{\headline}[1]{\renewcommand{\varHeadline}{#1}}
+\newcommand{\subtitle}[1]{\renewcommand{\varSubtitle}{#1}}
+\newcommand{\exercise}[1]{\renewcommand{\varExercise}{#1}}
+\newcommand{\authors}[1]{\renewcommand{\varAuthors}{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% titlepage
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\maketitle{
+\begin{titlepage}
+
+% enlarge page
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
+\setlength{\footskip}{0pt}
+
+\let\footnotesize\small \let\footnoterule\relax \setcounter{page}{1}
+\null
+\vfill
+\large
+\vskip -4 cm 
+
+\begin{center}
+% heading
+{\LARGE\bf \varHeadline \par} \vskip 2cm
+
+\vskip 1cm
+
+% title
+{\Huge\bf \varSubtitle \par} 
+\vskip 1cm
+{\Huge\bf \varExercise \par} 
+
+%{\Large \bf \@aufgabe \par}
+\vskip 4cm
+
+\begin{flushright}
+% authors
+\varAuthors
+
+\vskip 1cm
+Vienna, \today{}
+\end{flushright}
+\end{center} \par
+\vskip 1.5cm 
+
+\end{titlepage}
+
+\setcounter{footnote}{0} 
+\let\thanks\relax
+} % \def\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\dummyimage}{\framebox[\linewidth]{\rotatebox{30}{Insert your screenshot here.}}}
+\newcommand{\Task}[1]{\FloatBarrier\section{#1}}
+\titleformat{\section}{\normalfont\Large\bfseries}{Task~\thesection:}{1em}{}
+
+
+
