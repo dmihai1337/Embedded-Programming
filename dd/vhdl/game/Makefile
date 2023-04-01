@@ -7,11 +7,13 @@ VSIM_ARGS=-msgmode both
 VHDL_FILES = \
 	../math/src/math_pkg.vhd\
 	../gfx_cmd/src/gfx_cmd_pkg.vhd\
+	../gfx_cmd/tb/vram_pkg.vhd\
+	../gfx_cmd/src/interpreter_pkg.vhd\
 	../dualshock_ctrl/src/dualshock_pkg.vhd\
 	../mem/src/mem_pkg.vhd\
 	../audio_ctrl/src/audio_ctrl_pkg.vhd\
-	../gfx_cmd/tb/vram_pkg.vhd\
 	./src/gfx_init_pkg.vhd\
+	../gfx_cmd/src/interpreter_pkg.vhd\
 	../gfx_cmd/tb/gfx_cmd_interpreter.template.vhd\
 	./src/game.vhd\
 	./src/game_ex1.vhd

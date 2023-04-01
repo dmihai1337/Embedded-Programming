@@ -7,7 +7,9 @@ use work.math_pkg.all;
 use work.dualshock_pkg.all;
 use work.audio_ctrl_pkg.all;
 use work.mem_pkg.all;
+use work.vram_pkg.all;
 use work.gfx_init_pkg.all;
+use work.interpreter_pkg.all;
 
 entity game_tb is
 end entity;

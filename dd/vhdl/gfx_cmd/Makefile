@@ -8,6 +8,7 @@ VHDL_FILES = \
 	../math/src/math_pkg.vhd\
 	./src/gfx_cmd_pkg.vhd\
 	./tb/vram_pkg.vhd\
+	./src/interpreter_pkg.vhd\
 	./tb/gfx_cmd_interpreter.template.vhd
 
 TB_FILES = \
