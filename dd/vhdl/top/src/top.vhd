@@ -146,15 +146,12 @@ architecture arch of top is
 	
 	signal rumble : std_logic_vector(7 downto 0);
 	
-<<<<<<< HEAD
 	signal ssd_res_n, sw_enable, sw_stick_selector, sw_axis_selector, btn_change_sign_mode_n : std_logic;
-=======
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 	
 	signal ds : dualshock_t;
 begin
 	--add your PLL instance here
-<<<<<<< HEAD
+
 	myPLL : entity work.myPLL
 	port map (
 		inclk0 => clk,
@@ -242,10 +239,6 @@ begin
 		hex6				=> hex6,
 		hex7				=> hex7
 	);
-=======
-
-	system_res_n <= keys_int(0) and sw_reset;
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 
 	reset_sync : sync
 	generic map (
@@ -365,18 +358,6 @@ begin
 		end if;
 	end process;
 
-<<<<<<< HEAD
-=======
-	hex0 <= to_segs(ds.rs_y(3 downto 0));
-	hex1 <= to_segs(ds.rs_y(7 downto 4));
-	hex2 <= to_segs(ds.rs_x(3 downto 0));
-	hex3 <= to_segs(ds.rs_x(7 downto 4));
-	hex4 <= to_segs(ds.ls_y(3 downto 0));
-	hex5 <= to_segs(ds.ls_y(7 downto 4));
-	hex6 <= to_segs(ds.ls_x(3 downto 0));
-	hex7 <= to_segs(ds.ls_x(7 downto 4));
-
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 	ledg(0) <= ds.triangle;
 	ledg(1) <= ds.square;
 	ledg(2) <= ds.cross;

@@ -117,13 +117,8 @@ begin
 		gfx_cmd <= (others=>'0');
 
 		player_shot_y := state.player_shot_y;
-<<<<<<< HEAD
-		case state.fsm_state is
-			
-=======
 
 		case state.fsm_state is
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 			when RESET =>
 				state_nxt.fsm_state <= WAIT_INIT;
 				gfx_initializer_start <= '1';

@@ -1,10 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-<<<<<<< HEAD
 use ieee.std_logic_unsigned.all;
-=======
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 use work.dualshock_pkg.all;
 
 entity ssd_ctrl is
@@ -35,7 +32,6 @@ end entity;
 
 
 architecture arch of ssd_ctrl is
-<<<<<<< HEAD
 	
 	function to_segs_hex(value : in std_logic_vector(3 downto 0)) return std_logic_vector is
 	begin
@@ -331,7 +327,4 @@ begin
 		end case;
 	end process;
 
-=======
-begin
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 end architecture;

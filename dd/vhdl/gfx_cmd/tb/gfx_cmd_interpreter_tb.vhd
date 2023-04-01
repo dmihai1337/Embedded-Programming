@@ -17,12 +17,9 @@ architecture bench of gfx_cmd_interpreter_tb is
 	signal gfx_rd_data : std_logic_vector(15 downto 0);
 	signal gfx_rd_valid : std_logic;
 
-<<<<<<< HEAD
 	constant CLK_PERIOD : time := 20 ns;
 	signal stop_clock : boolean := false;
 
-=======
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 begin
 
 	uut : entity work.gfx_cmd_interpreter
@@ -39,7 +36,6 @@ begin
 	);
 	
 	-- add your testcode here
-<<<<<<< HEAD
 	stimulus : process
 	begin	
 		---------- TEST MEMORY COMMANDS ----------
@@ -477,7 +473,5 @@ begin
 		wait;
 	end process;
 
-=======
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 end architecture;
 

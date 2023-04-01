@@ -2,15 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
-<<<<<<< HEAD
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_signed.all;
-=======
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
-
 use std.textio.all;
 use ieee.std_logic_textio.all;
-
 use work.math_pkg.all;
 use work.vram_pkg.all;
 use work.gfx_cmd_pkg.all;
@@ -32,7 +27,6 @@ entity gfx_cmd_interpreter is
 end entity;
 
 architecture arch of gfx_cmd_interpreter is
-<<<<<<< HEAD
 	
 	type abd_t is record 
 		base : unsigned(20 downto 0);
@@ -652,10 +646,7 @@ architecture arch of gfx_cmd_interpreter is
 			when others => -- error --
 		end case;
 	end procedure;
-	
-=======
-	shared variable vram : vram_t;
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
+
 begin
 
 	init_vram : process
@@ -664,7 +655,6 @@ begin
 		wait;
 	end process;
 
-<<<<<<< HEAD
 	execute : process(clk)
 	begin
 		if (rising_edge(clk)) then
@@ -730,22 +720,4 @@ begin
 		end if;
 	end process;
 
-=======
-	demo : process
-	begin
-		wait for 1 ns;
-	
-		vram.set_byte(0, x"34");
-		vram.set_byte(1, x"12");
-		report to_hstring(vram.get_byte(0));
-		report to_hstring(vram.get_word(0));
-		
-		vram.set_word(2, x"4567");
-		vram.set_word(4, x"89ab");
-		vram.set_word(6, x"cdef");
-		
-		vram.dump_bitmap(0, 4, 4, "out.ppm");
-		wait;
-	end process;
->>>>>>> 6165a0b0644cb146ab1d4d2568a71b21bf33eb2e
 end architecture;
