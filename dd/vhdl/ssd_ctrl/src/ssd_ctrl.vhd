@@ -206,14 +206,14 @@ begin
 					tenths_ready_next <= false;
 					units_ready_next <= false;
 
-					if (input.sw_axis_selector = '0') then
-						if (input.sw_stick_selector = '0') then
+					if (input.sw_stick_selector = '0') then
+						if (input.sw_axis_selector = '0') then
 							value_next := input.ctrl_data.rs_y(7 downto 0);
 						else
 							value_next := input.ctrl_data.rs_x(7 downto 0);
 						end if;
 					else
-						if (input.sw_stick_selector = '0') then
+						if (input.sw_axis_selector = '0') then
 							value_next := input.ctrl_data.ls_y(7 downto 0);
 						else
 							value_next := input.ctrl_data.ls_x(7 downto 0);
