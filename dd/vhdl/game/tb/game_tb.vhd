@@ -39,7 +39,7 @@ architecture bench of game_tb is
 
 begin
 
-	game : entity work.game(ex1)
+	game : entity work.game(ex2)
 	port map (
 		clk 		=> clk,
 		res_n		=> res_n,

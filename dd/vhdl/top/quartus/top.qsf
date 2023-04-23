@@ -472,6 +472,14 @@ set_location_assignment PIN_A8 -to wm8731_sdat
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to wm8731_sdat
 set_location_assignment PIN_E1 -to wm8731_xck
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to wm8731_xck
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_Y2 -to clk
+set_global_assignment -name VHDL_FILE ../../game/src/game_ex2.vhd
+set_global_assignment -name VHDL_FILE ../../game_util/src/game_util_pkg.vhd
+set_global_assignment -name VHDL_FILE ../../game_util/src/shot_ctrl.vhd
+set_global_assignment -name VHDL_FILE ../../game_util/src/sifield.vhd
 set_global_assignment -name VHDL_FILE ../src/myPLL.vhd
 set_global_assignment -name QXP_FILE ../../vga_gfx_ctrl/src/vga_gfx_ctrl.qxp
 set_global_assignment -name VHDL_FILE ../../vga_gfx_ctrl/src/vga_gfx_ctrl_pkg.vhd
@@ -486,7 +494,6 @@ set_global_assignment -name VHDL_FILE ../../math/src/math_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../gfx_cmd/src/gfx_cmd_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../game/src/game.vhd
 set_global_assignment -name VHDL_FILE ../../game/src/game_ex1.vhd
-set_global_assignment -name VHDL_FILE ../../game/src/game_ex2.vhd
 set_global_assignment -name VHDL_FILE ../../game/src/game_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../game/src/gfx_init_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../dualshock_ctrl/src/dualshock_ctrl.vhd
@@ -500,9 +507,6 @@ set_global_assignment -name QXP_FILE ../../audio_ctrl/src/audio_ctrl_top.qxp
 set_global_assignment -name VHDL_FILE ../../audio_ctrl/src/audio_ctrl_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../audio_ctrl/src/audio_ctrl_2s.vhd
 set_global_assignment -name VHDL_FILE ../src/top.vhd
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_location_assignment PIN_Y2 -to clk
 set_global_assignment -name SDC_FILE top.sdc
+set_global_assignment -name VHDL_FILE ../../decimal_printer/src/decimal_printer_pkg.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

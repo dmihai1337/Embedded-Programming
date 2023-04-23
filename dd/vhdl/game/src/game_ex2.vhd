@@ -10,7 +10,7 @@ use work.mem_pkg.all;
 use work.gfx_init_pkg.all;
 use work.game_util_pkg.all;
 
-architecture ex1 of game is
+architecture ex2 of game is
 
 	constant DISPLAY_WIDTH : integer := 320;
 	constant DISPLAY_HEIGHT : integer := 240;
@@ -66,6 +66,15 @@ architecture ex1 of game is
 	signal gfx_initializer_cmd_wr : std_logic;
 	
 	signal prng_value : std_logic_vector(14 downto 0);
+
+	signal si_info : sifield_info_t;
+	signal si_busy : std_logic;
+	signal si_init, si_draw, si_check : std_logic;
+	signal si_xoff, si_yoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+	signal si_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0);
+	signal si_rd, si_wr : std_logic;
+	signal si_rd_loc, si_wr_loc : sifield_location_t;
+	signal si_rd_data, si_wr_data : std_logic_vector(SIFIELD_DATA_WIDTH-1 downto 0);
 	
 	impure function get_random_location return sifield_location_t is
 		variable return_value : sifield_location_t := (others=>(others=>'0'));
@@ -83,6 +92,35 @@ architecture ex1 of game is
 begin
 
 	rumble <= ctrl_data.ls_y when ctrl_data.r3 else x"00";
+
+	sifield : entity work.sifield(arch)
+	port map (
+		clk => clk,
+		res_n => res_n,
+
+		gfx_cmd => gfx_cmd,
+		gfx_cmd_wr => gfx_cmd_wr,
+		gfx_cmd_full => gfx_cmd_full,
+
+		init => si_init,
+		draw => si_draw,
+		check => si_check,
+		busy => si_busy,
+
+		check_result => si_info,
+
+		draw_offset_x => si_xoff,
+		draw_offset_y => si_yoff,
+		draw_bmpidx => si_bmpidx,
+
+		rd => si_rd,
+		rd_location => si_rd_loc,
+		rd_data => si_rd_data,
+
+		wr => si_wr,
+		wr_location => si_rd_loc,
+		wr_data => si_wr_data
+	);
 
 	sync : process(clk, res_n)
 	begin
@@ -134,6 +172,7 @@ begin
 		
 		variable player_shot_y : std_logic_vector(state.player_shot.y'range);
 	begin
+
 		state_nxt <= state;
 		
 		gfx_initializer_start <= '0';
