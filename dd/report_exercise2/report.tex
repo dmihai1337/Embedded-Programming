@@ -1,0 +1,115 @@
+\documentclass[10pt,a4paper,titlepage,oneside]{article}
+\usepackage{LabProtocol}
+
+\exercise{Exercise II}
+
+% enter your data here
+\authors{
+	Vorname Nachname, Matr. Nr. 0123456 \par
+	{\small e0123456@student.tuwien.ac.at} \par
+}
+
+
+\begin{document}
+
+\maketitle
+
+
+%████████╗ █████╗ ███████╗██╗  ██╗     ██╗
+%╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝    ███║
+%   ██║   ███████║███████╗█████╔╝     ╚██║
+%   ██║   ██╔══██║╚════██║██╔═██╗      ██║
+%   ██║   ██║  ██║███████║██║  ██╗     ██║
+%   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝     ╚═╝
+\Task{Space Invaders Game}
+
+\begin{qa}{Briefly describe the architecture of your \textsf{game} module. Are there any submodules? What is their purpose? How many FSMs did you use? (approximately 6-8 sentences, you can also include figures)}
+
+\end{qa}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%████████╗ █████╗ ███████╗██╗  ██╗    ██████╗ 
+%╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝    ╚════██╗
+%   ██║   ███████║███████╗█████╔╝      █████╔╝
+%   ██║   ██╔══██║╚════██║██╔═██╗     ██╔═══╝ 
+%   ██║   ██║  ██║███████║██║  ██╗    ███████╗
+%   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝    ╚══════╝
+\Task{DualShock Controller}
+
+
+\begin{qa}{Oscilloscope Measurements}
+\begin{figure}[h!]
+	\centering
+	% \includegraphics[width=1.0\linewidth]{your filename here}
+	\dummyimage
+	\caption{Screenshot(s) showing the main polling command (make sure that the individual bits are visible, insert more than one image if necessary)}
+\end{figure}
+
+\begin{center}
+
+Complete the table with the actual values shown in your measurement screenshot.
+\begin{center}
+\ttfamily
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}
+\hline
+byte    & 1    & 2    & 3    & 4     & 5     & 6     & 7     & 8     & 9    \\ \hline
+command & 0x01 & 0x42 & 0x00 & $M_S$ & $M_L$ & 0x00  & 0x00  & 0x00  & 0x00 \\ \hline
+data    & 0xff & 0x73 & 0x5a & $D_1$ & $D_2$ & $X_R$ & $Y_R$ & $X_L$ & $Y_L$ \\ \hline
+\end{tabular}
+\end{center}
+\end{center}
+
+\end{qa}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%████████╗ █████╗ ███████╗██╗  ██╗    ██████╗ 
+%╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝    ╚════██╗
+%   ██║   ███████║███████╗█████╔╝      █████╔╝
+%   ██║   ██╔══██║╚════██║██╔═██╗      ╚═══██╗
+%   ██║   ██║  ██║███████║██║  ██╗    ██████╔╝
+%   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝    ╚═════╝ 
+\Task{Bonus: SignalTap Measurement}
+
+\begin{qa}{Trigger Condition}
+	\begin{figure}[h!]
+		\centering
+		% \includegraphics[width=1.0\linewidth]{your filename here}
+		\dummyimage
+		\caption{Screenshot showing the trigger condition}
+	\end{figure}
+\end{qa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{qa}{Measurement Screenshot}
+	\begin{figure}[h!]
+		\centering
+		% \includegraphics[width=1.0\linewidth]{your filename here}
+		\dummyimage
+		\caption{Screenshot showing ths signal traces of one of the response time measurements}
+	\end{figure}
+\end{qa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{qa}{Response Time Measurement}
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
+	\hline
+	Measurement   & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8\\\hline
+	Response time &   &   &   &   &   &   &   &  \\\hline
+\end{tabular}
+\end{center}
+\end{qa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{qa}{Why is the response time not a constant value? What do you think contributes to it?}
+
+\end{qa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
