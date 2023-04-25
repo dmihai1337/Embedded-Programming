@@ -35,7 +35,7 @@ architecture ex2 of game is
 		DRAW_PLAYER_MOVE_GP, DRAW_PLAYER_MOVE_GP_X, DRAW_PLAYER_MOVE_GP_Y,
 		DRAW_PLAYER_INC_GP, DRAW_PLAYER_SET_COLOR, DRAW_PLAYER_BB_CHAR, DRAW_PLAYER_BB_CHAR_ARG,
 		DRAW_PLAYER_SHOT_MOVE_GP, DRAW_PLAYER_SHOT_MOVE_GP_X, DRAW_PLAYER_SHOT_MOVE_GP_Y,
-		DRAW_PLAYER_SHOT_SET_PIXEL,
+		DRAW_PLAYER_SHOT_SET_PIXEL, CHECK_SI_FIELD, WAIT_SI_CHECK, UPDATE_SI_FIELD,
 		DRAW_SIS_MOVE_GP, DRAW_SIS_MOVE_GP_X, DRAW_SIS_MOVE_GP_Y, DRAW_SIS_WAIT_INIT, DRAW_SIS_FIELD
 	);
 	
@@ -55,6 +55,8 @@ architecture ex2 of game is
 		si_xoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
 		si_yoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
 		si_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0);
+		si_mvmt : integer;
+		frames_count : integer;
 	end record;
 	
 	signal state, state_nxt : state_t;
@@ -128,7 +130,10 @@ begin
 				last_controller_state => DUALSHOCK_RST,
 				frame_buffer_selector => '0',
 				player_shot => SHOT_RESET,
+				si_bmpidx => "011",
 				si_dir => '0',
+				si_mvmt => 0,
+				frames_count => 0,
 				others => (others=>'0')
 			);
 		elsif (rising_edge(clk)) then
@@ -202,11 +207,17 @@ begin
 							state.si_xoff'length));
 				state_nxt.si_yoff <= std_logic_vector(to_unsigned(40,
 							state.si_yoff'length));
+				si_init <= '1';
 				
 			when WAIT_INIT =>
 				gfx_cmd <= gfx_initializer_cmd;
 				gfx_cmd_wr <= gfx_initializer_cmd_wr;
 				if (gfx_initializer_busy = '0') then
+					state_nxt.fsm_state <= DRAW_SIS_WAIT_INIT;
+				end if;
+
+			when DRAW_SIS_WAIT_INIT =>
+				if (si_busy = '0') then
 					state_nxt.fsm_state <= DO_FRAME_SYNC;
 				end if;
 			
@@ -234,19 +245,28 @@ begin
 				);
 			
 			when CLEAR_SCREEN =>
-				
-				if (state.si_bmpidx = "011") then
-					state_nxt.si_bmpidx <= "100";
-				else
-					state_nxt.si_bmpidx <= "011";
-				end if;
-
 				write_cmd(
 					create_gfx_instr(
 						opcode => OPCODE_CLEAR,
 						cs => CS_SECONDARY
-					), MOVE_PLAYER
+					), CHECK_SI_FIELD
 				);
+			
+			when CHECK_SI_FIELD =>
+				si_check <= '1';
+				state_nxt.frames_count <= state.frames_count + 1;
+
+				state_nxt.fsm_state <= WAIT_SI_CHECK;
+
+			when WAIT_SI_CHECK =>
+				if (si_busy = '0') then
+					state_nxt.fsm_state <= UPDATE_SI_FIELD;
+				end if;
+			
+			when UPDATE_SI_FIELD =>
+
+				state_nxt.si_mvmt <= to_integer(unsigned(si_info.count)) / 4 + 10;
+				state_nxt.fsm_state <= MOVE_PLAYER;
 
 			when MOVE_PLAYER =>
 				if (ctrl_data.left = '1') then
@@ -272,22 +292,32 @@ begin
 				state_nxt.fsm_state <= MOVE_SPACE_INVADERS;
 			
 			when MOVE_SPACE_INVADERS =>
-				if (state.si_dir = '1') then
-					if (unsigned(state.si_xoff) = 0) then
-						state_nxt.si_dir <= '0';
-						state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
+				if (state.frames_count = state.si_mvmt) then
+
+					if (state.si_bmpidx = "011") then
+						state_nxt.si_bmpidx <= "100";
 					else
-						state_nxt.si_xoff <=
-						std_logic_vector(unsigned(state.si_xoff) - 1);
+						state_nxt.si_bmpidx <= "011";
 					end if;
-				else
-					if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH - 16 * SIFIELD_WIDTH) then
-						state_nxt.si_dir <= '1';
-						state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
+					
+					if (state.si_dir = '1') then
+						if (unsigned(state.si_xoff) = 0) then
+							state_nxt.si_dir <= '0';
+							state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
+						else
+							state_nxt.si_xoff <=
+							std_logic_vector(unsigned(state.si_xoff) - 1);
+						end if;
 					else
-						state_nxt.si_xoff <=
-						std_logic_vector(unsigned(state.si_xoff) + 1);
+						if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH - 16 * SIFIELD_WIDTH) then
+							state_nxt.si_dir <= '1';
+							state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
+						else
+							state_nxt.si_xoff <=
+							std_logic_vector(unsigned(state.si_xoff) + 1);
+						end if;
 					end if;
+					state_nxt.frames_count <= 0;
 				end if;
 				state_nxt.fsm_state <= DRAW_PLAYER;
 			
@@ -420,9 +450,8 @@ begin
 			when DRAW_PLAYER_BB_CHAR_ARG =>
 				write_cmd(
 					std_logic_vector(to_unsigned(64, 10)) & 
-					std_logic_vector(to_unsigned(PLAYER_WIDTH, 6)), DRAW_SIS_WAIT_INIT
+					std_logic_vector(to_unsigned(PLAYER_WIDTH, 6)), DRAW_SPACE_INVADERS
 				);
-				si_init <= '1';
 
 			--██╗███╗   ██╗██╗   ██╗ █████╗ ██████╗ ███████╗██████╗ ███████╗
 			--██║████╗  ██║██║   ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝
@@ -430,11 +459,6 @@ begin
 			--██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██║  ██║██╔══╝  ██╔══██╗╚════██║
 			--██║██║ ╚████║ ╚████╔╝ ██║  ██║██████╔╝███████╗██║  ██║███████║
 			--╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝
-
-			when DRAW_SIS_WAIT_INIT =>
-				if (si_busy = '0') then
-					state_nxt.fsm_state <= DRAW_SPACE_INVADERS;
-				end if;
 
 			when DRAW_SIS_MOVE_GP =>
 				write_cmd(
