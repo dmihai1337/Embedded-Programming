@@ -87,6 +87,8 @@ begin
 
 		wait until rising_edge(clk);	
 		wait until rising_edge(clk);
+		wait until rising_edge(clk);	
+		wait until rising_edge(clk);
 		
 		-- fire a shot
 		ds.cross <= '1';
@@ -97,7 +99,7 @@ begin
 		-- move right
 		ds.right <= '1';
 
-		wait until N = 8;
+		wait until N = 100;
 
 		ds.right <= '0';
 

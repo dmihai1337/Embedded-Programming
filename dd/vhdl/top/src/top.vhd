@@ -223,13 +223,13 @@ begin
 
 	ssd_ctrl : entity work.ssd_ctrl
 	port map (
-		clk				=> clk,
-		res_n				=> ssd_res_n,
-		ctrl_data 			=> ds,
-		sw_enable			=> sw_enable,
+		clk						=> clk,
+		res_n					=> ssd_res_n,
+		ctrl_data 				=> ds,
+		sw_enable				=> sw_enable,
 		sw_stick_selector		=> sw_stick_selector,
 		sw_axis_selector		=> sw_axis_selector,
-		btn_change_sign_mode_n		=> btn_change_sign_mode_n,
+		btn_change_sign_mode_n	=> btn_change_sign_mode_n,
 		hex0				=> hex0,
 		hex1				=> hex1,
 		hex2				=> hex2,

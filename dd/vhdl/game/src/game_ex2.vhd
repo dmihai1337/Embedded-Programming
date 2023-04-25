@@ -28,23 +28,21 @@ architecture ex2 of game is
 		DO_FRAME_SYNC, WAIT_FRAME_SYNC, SWTICH_FRAME_BUFFER,
 		CLEAR_SCREEN,
 		MOVE_PLAYER, PLAYER_WALL_COLLISION,
-		MOVE_SPACE_INVADER,
+		MOVE_SPACE_INVADERS,
 		MOVE_PLAYER_SHOT,
 		CHECK_SHOT_COLLISION_MOVE_GP, CHECK_SHOT_COLLISION_MOVE_GP_X, CHECK_SHOT_COLLISION_MOVE_GP_Y,
 		CHECK_SHOT_COLLISION_MOVE_GET_PIXEL, CHECK_SHOT_COLLISION_WAIT_RESPONSE,
 		DRAW_PLAYER_MOVE_GP, DRAW_PLAYER_MOVE_GP_X, DRAW_PLAYER_MOVE_GP_Y,
-		DRAW_PLAYER_INC_GP, DRAW_PLAYER_BB_CHAR, DRAW_PLAYER_BB_CHAR_ARG,
+		DRAW_PLAYER_INC_GP, DRAW_PLAYER_SET_COLOR, DRAW_PLAYER_BB_CHAR, DRAW_PLAYER_BB_CHAR_ARG,
 		DRAW_PLAYER_SHOT_MOVE_GP, DRAW_PLAYER_SHOT_MOVE_GP_X, DRAW_PLAYER_SHOT_MOVE_GP_Y,
 		DRAW_PLAYER_SHOT_SET_PIXEL,
-		DRAW_SI_MOVE_GP, DRAW_SI_MOVE_GP_X, DRAW_SI_MOVE_GP_Y, DRAW_SI_SET_BB_EFFECT,
-		DRAW_SI_BB_CHAR, DRAW_SI_BB_CHAR_ARG,
-		DRAW_SI_RESET_BB_EFFECT
+		DRAW_SIS_MOVE_GP, DRAW_SIS_MOVE_GP_X, DRAW_SIS_MOVE_GP_Y, DRAW_SIS_WAIT_INIT, DRAW_SIS_FIELD
 	);
 	
 	-- pseudo states
 	constant DRAW_PLAYER : fsm_state_t := DRAW_PLAYER_MOVE_GP;
 	constant DRAW_PLAYER_SHOT : fsm_state_t := DRAW_PLAYER_SHOT_MOVE_GP;
-	constant DRAW_SPACE_INVADER : fsm_state_t := DRAW_SI_MOVE_GP;
+	constant DRAW_SPACE_INVADERS : fsm_state_t := DRAW_SIS_MOVE_GP;
 
 	type state_t is record
 		fsm_state : fsm_state_t;
@@ -53,10 +51,10 @@ architecture ex2 of game is
 		player_x : std_logic_vector(log2c(DISPLAY_WIDTH)-1 downto 0); -- the center coordinate of the player
 		player_y : std_logic_vector(log2c(DISPLAY_HEIGHT)-1 downto 0);
 		player_shot : shot_t;
-		space_invader_x : std_logic_vector(log2c(DISPLAY_WIDTH)-1 downto 0);
-		space_invader_y : std_logic_vector(log2c(DISPLAY_HEIGHT)-1 downto 0);
-		space_invader_type : std_logic_vector(1 downto 0);
-		space_invader_dir : std_logic;
+		si_dir : std_logic;
+		si_xoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+		si_yoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+		si_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0);
 	end record;
 	
 	signal state, state_nxt : state_t;
@@ -69,19 +67,19 @@ architecture ex2 of game is
 
 	signal si_info : sifield_info_t;
 	signal si_busy : std_logic;
-	signal si_init, si_draw, si_check : std_logic;
-	signal si_xoff, si_yoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
-	signal si_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0);
-	signal si_rd, si_wr : std_logic;
-	signal si_rd_loc, si_wr_loc : sifield_location_t;
+	signal si_init, si_draw, si_check : std_logic := '0';
+	signal si_rd, si_wr : std_logic := '0';
+	signal si_rd_loc, si_wr_loc : sifield_location_t := (others=>(others=>'0'));
 	signal si_rd_data, si_wr_data : std_logic_vector(SIFIELD_DATA_WIDTH-1 downto 0);
+	signal si_gfx_cmd : std_logic_vector(15 downto 0);
+	signal si_gfx_cmd_wr : std_logic;
 	
 	impure function get_random_location return sifield_location_t is
 		variable return_value : sifield_location_t := (others=>(others=>'0'));
 	begin
 		return_value.x := prng_value(prng_value'length-1 downto prng_value'length-4);
 		for i in 0 to prng_value(prng_value'length-5 downto 0)'length/3-1 loop
-			if ( unsigned(prng_value((i+1)*3-1 downto i*3)) < 5) then
+			if (unsigned(prng_value((i+1)*3-1 downto i*3)) < 5) then
 				return_value.y := prng_value((i+1)*3-1 downto i*3);
 				exit;
 			end if;
@@ -98,8 +96,8 @@ begin
 		clk => clk,
 		res_n => res_n,
 
-		gfx_cmd => gfx_cmd,
-		gfx_cmd_wr => gfx_cmd_wr,
+		gfx_cmd => si_gfx_cmd,
+		gfx_cmd_wr => si_gfx_cmd_wr,
 		gfx_cmd_full => gfx_cmd_full,
 
 		init => si_init,
@@ -109,16 +107,16 @@ begin
 
 		check_result => si_info,
 
-		draw_offset_x => si_xoff,
-		draw_offset_y => si_yoff,
-		draw_bmpidx => si_bmpidx,
+		draw_offset_x => state.si_xoff,
+		draw_offset_y => state.si_yoff,
+		draw_bmpidx => state.si_bmpidx,
 
 		rd => si_rd,
 		rd_location => si_rd_loc,
 		rd_data => si_rd_data,
 
 		wr => si_wr,
-		wr_location => si_rd_loc,
+		wr_location => si_wr_loc,
 		wr_data => si_wr_data
 	);
 
@@ -130,7 +128,7 @@ begin
 				last_controller_state => DUALSHOCK_RST,
 				frame_buffer_selector => '0',
 				player_shot => SHOT_RESET,
-				space_invader_dir => '0',
+				si_dir => '0',
 				others => (others=>'0')
 			);
 		elsif (rising_edge(clk)) then
@@ -173,6 +171,12 @@ begin
 		variable player_shot_y : std_logic_vector(state.player_shot.y'range);
 	begin
 
+		si_init <= '0';
+		si_draw <= '0';
+		si_check <= '0';
+		si_rd <= '0';
+		si_wr <= '0';
+
 		state_nxt <= state;
 		
 		gfx_initializer_start <= '0';
@@ -194,12 +198,10 @@ begin
 				state_nxt.player_y <= std_logic_vector(to_unsigned(DISPLAY_HEIGHT-20,
 							state.player_y'length));
 				
-				state_nxt.space_invader_x <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/3,
-							state.space_invader_x'length));
-				state_nxt.space_invader_y <= std_logic_vector(to_unsigned(20,
-							state.space_invader_y'length));
-				
-				state_nxt.space_invader_type <= (others=>'1');
+				state_nxt.si_xoff <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/6,
+							state.si_xoff'length));
+				state_nxt.si_yoff <= std_logic_vector(to_unsigned(40,
+							state.si_yoff'length));
 				
 			when WAIT_INIT =>
 				gfx_cmd <= gfx_initializer_cmd;
@@ -232,6 +234,13 @@ begin
 				);
 			
 			when CLEAR_SCREEN =>
+				
+				if (state.si_bmpidx = "011") then
+					state_nxt.si_bmpidx <= "100";
+				else
+					state_nxt.si_bmpidx <= "011";
+				end if;
+
 				write_cmd(
 					create_gfx_instr(
 						opcode => OPCODE_CLEAR,
@@ -260,24 +269,24 @@ begin
 						DISPLAY_WIDTH-PLAYER_WIDTH/2-1, state.player_x'length));
 				end if;
 				
-				state_nxt.fsm_state <= MOVE_SPACE_INVADER;
+				state_nxt.fsm_state <= MOVE_SPACE_INVADERS;
 			
-			when MOVE_SPACE_INVADER =>
-				if (state.space_invader_dir = '1') then
-					if (unsigned(state.space_invader_x) = 0) then
-						state_nxt.space_invader_dir <= '0';
+			when MOVE_SPACE_INVADERS =>
+				if (state.si_dir = '1') then
+					if (unsigned(state.si_xoff) = 0) then
+						state_nxt.si_dir <= '0';
+						state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
 					else
-						state_nxt.space_invader_x <=
-						std_logic_vector(unsigned(state.space_invader_x) - 1);
+						state_nxt.si_xoff <=
+						std_logic_vector(unsigned(state.si_xoff) - 1);
 					end if;
 				else
-					if (unsigned(state.space_invader_x) >= 
-					DISPLAY_WIDTH-SPACE_INVADER_WIDTHS(to_integer(
-					unsigned(state.space_invader_type)))-1) then
-						state_nxt.space_invader_dir <= '1';
+					if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH - 16 * SIFIELD_WIDTH) then
+						state_nxt.si_dir <= '1';
+						state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
 					else
-						state_nxt.space_invader_x <=
-						std_logic_vector(unsigned(state.space_invader_x) + 1);
+						state_nxt.si_xoff <=
+						std_logic_vector(unsigned(state.si_xoff) + 1);
 					end if;
 				end if;
 				state_nxt.fsm_state <= DRAW_PLAYER;
@@ -316,14 +325,17 @@ begin
 				);
 			when CHECK_SHOT_COLLISION_MOVE_GP_X =>
 				write_cmd(unsigned_operand(state.player_shot.x), CHECK_SHOT_COLLISION_MOVE_GP_Y);
+
 			when CHECK_SHOT_COLLISION_MOVE_GP_Y =>
 				write_cmd(unsigned_operand(state.player_shot.y), CHECK_SHOT_COLLISION_MOVE_GET_PIXEL);
+
 			when CHECK_SHOT_COLLISION_MOVE_GET_PIXEL =>
 				write_cmd(
 					create_gfx_instr(
 						opcode => OPCODE_GET_PIXEL
 					), CHECK_SHOT_COLLISION_WAIT_RESPONSE
 				);
+
 			when CHECK_SHOT_COLLISION_WAIT_RESPONSE =>
 				if gfx_rd_valid = '1' then
 					state_nxt.fsm_state <= DRAW_PLAYER_SHOT;
@@ -331,7 +343,6 @@ begin
 						report "game: collision detected ";
 						state_nxt.player_shot.active <= '0';
 						state_nxt.fsm_state <= DO_FRAME_SYNC;
-						state_nxt.space_invader_type <= prng_value(1 downto 0);
 					end if;
 				end if;
 			
@@ -347,10 +358,13 @@ begin
 						opcode => OPCODE_MOVE_GP
 					), DRAW_PLAYER_SHOT_MOVE_GP_X
 				);
+
 			when DRAW_PLAYER_SHOT_MOVE_GP_X =>
 				write_cmd(unsigned_operand(state.player_shot.x), DRAW_PLAYER_SHOT_MOVE_GP_Y);
+
 			when DRAW_PLAYER_SHOT_MOVE_GP_Y =>
 				write_cmd(unsigned_operand(state.player_shot.y), DRAW_PLAYER_SHOT_SET_PIXEL);
+
 			when DRAW_PLAYER_SHOT_SET_PIXEL =>
 				write_cmd(
 					create_gfx_instr(
@@ -370,10 +384,13 @@ begin
 						opcode => OPCODE_MOVE_GP
 					), DRAW_PLAYER_MOVE_GP_X
 				);
+
 			when DRAW_PLAYER_MOVE_GP_X =>
 				write_cmd(unsigned_operand(state.player_x), DRAW_PLAYER_MOVE_GP_Y);
+
 			when DRAW_PLAYER_MOVE_GP_Y =>
 				write_cmd(unsigned_operand(state.player_y), DRAW_PLAYER_INC_GP);
+
 			when DRAW_PLAYER_INC_GP =>
 				write_cmd(
 					create_gfx_instr(
@@ -381,8 +398,16 @@ begin
 						dir => DIR_X,
 						incvalue => std_logic_vector(to_signed(-PLAYER_WIDTH/2, 
 								WIDTH_INCVALUE))
-					), DRAW_PLAYER_BB_CHAR
+					), DRAW_PLAYER_SET_COLOR
 				);
+
+			when DRAW_PLAYER_SET_COLOR =>
+				write_cmd(create_gfx_instr(
+					opcode => OPCODE_SET_BB_EFFECT,
+					maskop => MASKOP_XOR,
+					mask => "10111000"
+				), DRAW_PLAYER_BB_CHAR);
+
 			when DRAW_PLAYER_BB_CHAR =>
 				write_cmd(
 					create_gfx_instr(
@@ -391,56 +416,48 @@ begin
 						am => '1'
 					), DRAW_PLAYER_BB_CHAR_ARG
 				);
+
 			when DRAW_PLAYER_BB_CHAR_ARG =>
 				write_cmd(
 					std_logic_vector(to_unsigned(64, 10)) & 
-					std_logic_vector(to_unsigned(PLAYER_WIDTH, 6)), DRAW_SPACE_INVADER
+					std_logic_vector(to_unsigned(PLAYER_WIDTH, 6)), DRAW_SIS_WAIT_INIT
 				);
+				si_init <= '1';
 
-			--██╗███╗   ██╗██╗   ██╗ █████╗ ██████╗ ███████╗██████╗ 
-			--██║████╗  ██║██║   ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗
-			--██║██╔██╗ ██║██║   ██║███████║██║  ██║█████╗  ██████╔╝
-			--██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██║  ██║██╔══╝  ██╔══██╗
-			--██║██║ ╚████║ ╚████╔╝ ██║  ██║██████╔╝███████╗██║  ██║
-			--╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-			when DRAW_SI_MOVE_GP =>
+			--██╗███╗   ██╗██╗   ██╗ █████╗ ██████╗ ███████╗██████╗ ███████╗
+			--██║████╗  ██║██║   ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝
+			--██║██╔██╗ ██║██║   ██║███████║██║  ██║█████╗  ██████╔╝███████╗
+			--██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██║  ██║██╔══╝  ██╔══██╗╚════██║
+			--██║██║ ╚████║ ╚████╔╝ ██║  ██║██████╔╝███████╗██║  ██║███████║
+			--╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝
+
+			when DRAW_SIS_WAIT_INIT =>
+				if (si_busy = '0') then
+					state_nxt.fsm_state <= DRAW_SPACE_INVADERS;
+				end if;
+
+			when DRAW_SIS_MOVE_GP =>
 				write_cmd(
 					create_gfx_instr(
 						opcode => OPCODE_MOVE_GP
-					), DRAW_SI_MOVE_GP_X
+					), DRAW_SIS_MOVE_GP_X
 				);
-			when DRAW_SI_MOVE_GP_X =>
-				write_cmd(unsigned_operand(state.space_invader_x), DRAW_SI_MOVE_GP_Y);
-			when DRAW_SI_MOVE_GP_Y =>
-				write_cmd(unsigned_operand(state.space_invader_y), DRAW_SI_SET_BB_EFFECT);
-			when DRAW_SI_SET_BB_EFFECT =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_SET_BB_EFFECT,
-						maskop => MASKOP_XOR,
-						mask => x"0e"
-					), DRAW_SI_BB_CHAR
-				);
-			when DRAW_SI_BB_CHAR =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "011",
-						am => '1'
-					), DRAW_SI_BB_CHAR_ARG
-				);
-			when DRAW_SI_BB_CHAR_ARG =>
-				write_cmd(
-					"0000" & state.space_invader_type & "0000" & std_logic_vector(to_unsigned(16, 
-					6)), DRAW_SI_RESET_BB_EFFECT
-				);
-			when DRAW_SI_RESET_BB_EFFECT =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_SET_BB_EFFECT,
-						maskop => MASKOP_NOP
-					), MOVE_PLAYER_SHOT
-				);
+
+			when DRAW_SIS_MOVE_GP_X =>
+				write_cmd(unsigned_operand(state.si_xoff), DRAW_SIS_MOVE_GP_Y);
+
+			when DRAW_SIS_MOVE_GP_Y =>
+				write_cmd(unsigned_operand(state.si_yoff), DRAW_SIS_FIELD);
+				si_draw <= '1';
+
+			when DRAW_SIS_FIELD =>
+				gfx_cmd_wr <= si_gfx_cmd_wr;
+				gfx_cmd <= si_gfx_cmd;
+
+				if (si_busy = '0') then
+					state_nxt.fsm_state <= MOVE_PLAYER_SHOT;
+				end if;
+
 		end case;
 	end process;
 
