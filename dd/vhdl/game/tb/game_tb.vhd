@@ -99,7 +99,7 @@ begin
 		-- move right
 		ds.right <= '1';
 
-		wait until N = 35;
+		wait until N = 5;
 
 		ds.right <= '0';
 

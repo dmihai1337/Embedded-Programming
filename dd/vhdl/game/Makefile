@@ -14,11 +14,13 @@ VHDL_FILES = \
 	../audio_ctrl/src/audio_ctrl_pkg.vhd\
 	./src/gfx_init_pkg.vhd\
 	../gfx_cmd/src/interpreter_pkg.vhd\
+	../decimal_printer/src/decimal_printer_pkg.vhd\
 	../gfx_cmd/tb/gfx_cmd_interpreter.template.vhd\
 	../mem/src/dp_ram_1c1r1w.vhd\
 	../game_util/src/game_util_pkg.vhd\
 	../game_util/src/sifield.vhd\
 	../game_util/src/shot_ctrl.vhd\
+	../decimal_printer/src/decimal_printer.vho\
 	./src/game.vhd\
 	./src/game_ex2.vhd
 

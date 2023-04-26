@@ -30,18 +30,18 @@ architecture ex2 of game is
 		MOVE_PLAYER, PLAYER_WALL_COLLISION,
 		MOVE_SPACE_INVADERS,
 		MOVE_PLAYER_SHOT,
-		CHECK_SHOT_COLLISION_MOVE_GP, CHECK_SHOT_COLLISION_MOVE_GP_X, CHECK_SHOT_COLLISION_MOVE_GP_Y,
-		CHECK_SHOT_COLLISION_MOVE_GET_PIXEL, CHECK_SHOT_COLLISION_WAIT_RESPONSE,
+		CHECK_SHOT_WAIT,
 		DRAW_PLAYER_MOVE_GP, DRAW_PLAYER_MOVE_GP_X, DRAW_PLAYER_MOVE_GP_Y,
 		DRAW_PLAYER_INC_GP, DRAW_PLAYER_SET_COLOR, DRAW_PLAYER_BB_CHAR, DRAW_PLAYER_BB_CHAR_ARG,
-		DRAW_PLAYER_SHOT_MOVE_GP, DRAW_PLAYER_SHOT_MOVE_GP_X, DRAW_PLAYER_SHOT_MOVE_GP_Y,
-		DRAW_PLAYER_SHOT_SET_PIXEL, CHECK_SI_FIELD, WAIT_SI_CHECK, UPDATE_SI_FIELD,
-		DRAW_SIS_MOVE_GP, DRAW_SIS_MOVE_GP_X, DRAW_SIS_MOVE_GP_Y, DRAW_SIS_WAIT_INIT, DRAW_SIS_FIELD
+		DRAW_PLAYER_SHOT, DRAW_PLAYER_SHOT_WAIT, CHECK_SI_FIELD, WAIT_SI_CHECK, UPDATE_SI_FIELD,
+		DRAW_SIS_MOVE_GP, DRAW_SIS_MOVE_GP_X, DRAW_SIS_MOVE_GP_Y, DRAW_SIS_WAIT_INIT, DRAW_SIS_FIELD,
+		DELETE_SPACE_INVADER, 
+		DRAW_LINE_MOVE_GP, DRAW_LINE_MOVE_GP_X, DRAW_LINE_MOVE_GP_Y, DRAW_LINE, DRAW_HLINE_DX,
+		DRAW_SCORE_DIGITS, DRAW_SCORE_WAIT, DRAW_SCORE_MOVE_GP, DRAW_SCORE_MOVE_GP_X, DRAW_SCORE_MOVE_GP_Y
 	);
 	
 	-- pseudo states
 	constant DRAW_PLAYER : fsm_state_t := DRAW_PLAYER_MOVE_GP;
-	constant DRAW_PLAYER_SHOT : fsm_state_t := DRAW_PLAYER_SHOT_MOVE_GP;
 	constant DRAW_SPACE_INVADERS : fsm_state_t := DRAW_SIS_MOVE_GP;
 
 	type state_t is record
@@ -75,6 +75,19 @@ architecture ex2 of game is
 	signal si_rd_data, si_wr_data : std_logic_vector(SIFIELD_DATA_WIDTH-1 downto 0);
 	signal si_gfx_cmd : std_logic_vector(15 downto 0);
 	signal si_gfx_cmd_wr : std_logic;
+
+	signal sc_gfx_cmd : std_logic_vector(15 downto 0);
+	signal sc_gfx_cmd_wr : std_logic;
+	signal sc_busy : std_logic;
+	signal sc_draw, sc_check : std_logic := '0';
+	signal sc_info : collision_info_t;
+
+	signal dp_gfx_cmd : std_logic_vector(15 downto 0);
+	signal dp_gfx_cmd_wr : std_logic;
+	signal dp_busy : std_logic;
+	signal dp_start: std_logic := '0';
+	signal dp_number : std_logic_vector(15 downto 0);
+	signal dp_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0) := "010";
 	
 	impure function get_random_location return sifield_location_t is
 		variable return_value : sifield_location_t := (others=>(others=>'0'));
@@ -92,6 +105,25 @@ architecture ex2 of game is
 begin
 
 	rumble <= ctrl_data.ls_y when ctrl_data.r3 else x"00";
+
+	shot_ctrl : entity work.shot_ctrl(arch)
+	port map (
+		clk => clk,
+		res_n => res_n,
+
+		gfx_cmd => sc_gfx_cmd,
+		gfx_cmd_wr => sc_gfx_cmd_wr,
+		gfx_cmd_full => gfx_cmd_full,
+		gfx_rd_data => gfx_rd_data,
+		gfx_rd_valid => gfx_rd_valid,
+
+		shot => state.player_shot,
+		draw => sc_draw,
+		check => sc_check,
+		busy => sc_busy,
+
+		check_result => sc_info
+	);
 
 	sifield : entity work.sifield(arch)
 	port map (
@@ -122,6 +154,22 @@ begin
 		wr_data => si_wr_data
 	);
 
+	decimal_printer : entity work.decimal_printer(structure)
+	port map (
+		clk => clk,
+		res_n => res_n,
+
+		gfx_cmd => dp_gfx_cmd,
+		gfx_cmd_wr => dp_gfx_cmd_wr,
+		gfx_cmd_full => gfx_cmd_full,
+
+		start => dp_start,
+		busy => dp_busy,
+
+		number => dp_number,
+		bmpidx => dp_bmpidx
+	);
+
 	sync : process(clk, res_n)
 	begin
 		if (res_n = '0') then
@@ -150,6 +198,29 @@ begin
 				state_nxt.fsm_state <= next_state;
 			end if;
 		end procedure;
+
+		function get_si_location(	sc_info : collision_info_t;
+									state : state_t) return sifield_location_t is
+			variable aux : shot_t := state.player_shot;
+			variable result : sifield_location_t;
+			variable count : integer;
+		begin
+			count := 0;
+			while(to_integer(unsigned(aux.x)) > to_integer(unsigned(state.si_xoff))) loop
+				aux.x := std_logic_vector(unsigned(aux.x) - 16);
+				count := count + 1;
+			end loop;
+			result.x := std_logic_vector(to_unsigned(count - 1, log2c(SIFIELD_WIDTH)));
+			
+			count := 0;
+			while(to_integer(unsigned(aux.y)) > to_integer(unsigned(state.si_yoff))) loop
+				aux.y := std_logic_vector(unsigned(aux.y) - 16);
+				count := count + 1;
+			end loop;
+			result.y := std_logic_vector(to_unsigned(count - 1, log2c(SIFIELD_HEIGHT)));
+
+			return result;
+		end function;
 	
 		function unsigned_operand(operand : std_logic_vector) return std_logic_vector is
 			variable cmd : std_logic_vector(15 downto 0);
@@ -182,6 +253,11 @@ begin
 		si_rd <= '0';
 		si_wr <= '0';
 
+		sc_draw <= '0';
+		sc_check <= '0';
+
+		dp_start <= '0';
+
 		state_nxt <= state;
 		
 		gfx_initializer_start <= '0';
@@ -200,7 +276,7 @@ begin
 				
 				state_nxt.player_x <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/2,
 							state.player_x'length));
-				state_nxt.player_y <= std_logic_vector(to_unsigned(DISPLAY_HEIGHT-20,
+				state_nxt.player_y <= std_logic_vector(to_unsigned(DISPLAY_HEIGHT-25,
 							state.player_y'length));
 				
 				state_nxt.si_xoff <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/6,
@@ -248,10 +324,55 @@ begin
 				write_cmd(
 					create_gfx_instr(
 						opcode => OPCODE_CLEAR,
-						cs => CS_SECONDARY
-					), CHECK_SI_FIELD
+						cs => CS_PRIMARY
+					), DRAW_LINE_MOVE_GP
 				);
-			
+
+			when DRAW_LINE_MOVE_GP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_MOVE_GP
+					), DRAW_LINE_MOVE_GP_X
+				);
+
+			when DRAW_LINE_MOVE_GP_X =>
+				write_cmd(std_logic_vector(to_unsigned(0, 16)), DRAW_LINE_MOVE_GP_Y);
+
+			when DRAW_LINE_MOVE_GP_Y =>
+				write_cmd(std_logic_vector(to_unsigned(230, 16)), DRAW_LINE);
+
+			when DRAW_LINE =>
+				write_cmd(create_gfx_instr(opcode=>OPCODE_DRAW_HLINE, cs=>CS_SECONDARY), DRAW_HLINE_DX);
+
+			when DRAW_HLINE_DX =>
+				write_cmd(std_logic_vector(to_unsigned(320, 16)), DRAW_SCORE_MOVE_GP);
+
+			-- when DRAW_SCORE_MOVE_GP =>
+			-- 	write_cmd(
+			-- 		create_gfx_instr(
+			-- 			opcode => OPCODE_MOVE_GP
+			-- 		), DRAW_SCORE_MOVE_GP_X
+			-- 	);
+
+			-- when DRAW_SCORE_MOVE_GP_X =>
+			-- 	write_cmd(std_logic_vector(to_unsigned(0, 16)), DRAW_SCORE_MOVE_GP_Y);
+
+			-- when DRAW_SCORE_MOVE_GP_Y =>
+			-- 	write_cmd(std_logic_vector(to_unsigned(100, 16)), DRAW_SCORE_DIGITS);
+			-- 	dp_number <= "0000000000000010";	
+
+			-- when DRAW_SCORE_DIGITS =>
+			-- 	dp_start <= '1';
+			-- 	state_nxt.fsm_state <= DRAW_SCORE_WAIT;
+
+			-- when DRAW_SCORE_WAIT =>
+			-- 	gfx_cmd_wr <= dp_gfx_cmd_wr;
+			-- 	gfx_cmd <= dp_gfx_cmd;
+
+			-- 	if (dp_busy = '0') then
+			-- 		state_nxt.fsm_state <= CHECK_SI_FIELD;
+			-- 	end if;
+
 			when CHECK_SI_FIELD =>
 				si_check <= '1';
 				state_nxt.frames_count <= state.frames_count + 1;
@@ -292,7 +413,7 @@ begin
 				state_nxt.fsm_state <= MOVE_SPACE_INVADERS;
 			
 			when MOVE_SPACE_INVADERS =>
-				if (state.frames_count = state.si_mvmt) then
+				if (state.frames_count = state.si_mvmt - 1) then
 
 					if (state.si_bmpidx = "011") then
 						state_nxt.si_bmpidx <= "100";
@@ -309,7 +430,7 @@ begin
 							std_logic_vector(unsigned(state.si_xoff) - 1);
 						end if;
 					else
-						if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH - 16 * SIFIELD_WIDTH) then
+						if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH - SIFIELD_WIDTH * 16) then
 							state_nxt.si_dir <= '1';
 							state_nxt.si_yoff <= std_logic_vector(unsigned(state.si_yoff) + 8);
 						else
@@ -324,7 +445,8 @@ begin
 			when MOVE_PLAYER_SHOT =>
 				state_nxt.last_controller_state <= ctrl_data;
 				if (state.player_shot.active = '1') then
-					state_nxt.fsm_state <= CHECK_SHOT_COLLISION_MOVE_GP;
+					sc_check <= '1';
+					state_nxt.fsm_state <= CHECK_SHOT_WAIT;
 					player_shot_y := 
 						std_logic_vector(signed(state.player_shot.y) - PLAYER_SHOT_SPEED);
 					state_nxt.player_shot.y <= player_shot_y;
@@ -347,34 +469,25 @@ begin
 					end if;
 				end if;
 			
-			when CHECK_SHOT_COLLISION_MOVE_GP =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_MOVE_GP
-					), CHECK_SHOT_COLLISION_MOVE_GP_X
-				);
-			when CHECK_SHOT_COLLISION_MOVE_GP_X =>
-				write_cmd(unsigned_operand(state.player_shot.x), CHECK_SHOT_COLLISION_MOVE_GP_Y);
+			when CHECK_SHOT_WAIT =>
+				gfx_cmd_wr <= sc_gfx_cmd_wr;
+				gfx_cmd <= sc_gfx_cmd;
 
-			when CHECK_SHOT_COLLISION_MOVE_GP_Y =>
-				write_cmd(unsigned_operand(state.player_shot.y), CHECK_SHOT_COLLISION_MOVE_GET_PIXEL);
-
-			when CHECK_SHOT_COLLISION_MOVE_GET_PIXEL =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_GET_PIXEL
-					), CHECK_SHOT_COLLISION_WAIT_RESPONSE
-				);
-
-			when CHECK_SHOT_COLLISION_WAIT_RESPONSE =>
-				if gfx_rd_valid = '1' then
+				if (sc_busy = '0') then
 					state_nxt.fsm_state <= DRAW_PLAYER_SHOT;
-					if gfx_rd_data(7 downto 0) = x"0e" then
+					if (sc_info.color /= "00000000") then
 						report "game: collision detected ";
-						state_nxt.player_shot.active <= '0';
-						state_nxt.fsm_state <= DO_FRAME_SYNC;
+						state_nxt.fsm_state <= DELETE_SPACE_INVADER;
 					end if;
 				end if;
+
+			when DELETE_SPACE_INVADER =>
+				si_wr <= '1';
+				si_wr_loc <= get_si_location(sc_info, state);
+				si_wr_data <= "11";
+
+				state_nxt.player_shot.active <= '0';
+				state_nxt.fsm_state <= DO_FRAME_SYNC;
 			
 			--███████╗██╗  ██╗ ██████╗ ████████╗
 			--██╔════╝██║  ██║██╔═══██╗╚══██╔══╝
@@ -382,25 +495,18 @@ begin
 			--╚════██║██╔══██║██║   ██║   ██║   
 			--███████║██║  ██║╚██████╔╝   ██║   
 			--╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝   
-			when DRAW_PLAYER_SHOT_MOVE_GP =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_MOVE_GP
-					), DRAW_PLAYER_SHOT_MOVE_GP_X
-				);
+			
+			when DRAW_PLAYER_SHOT =>
+				sc_draw <= '1';
+				state_nxt.fsm_state <= DRAW_PLAYER_SHOT_WAIT;
 
-			when DRAW_PLAYER_SHOT_MOVE_GP_X =>
-				write_cmd(unsigned_operand(state.player_shot.x), DRAW_PLAYER_SHOT_MOVE_GP_Y);
+			when DRAW_PLAYER_SHOT_WAIT =>
+				gfx_cmd_wr <= sc_gfx_cmd_wr;
+				gfx_cmd <= sc_gfx_cmd;
 
-			when DRAW_PLAYER_SHOT_MOVE_GP_Y =>
-				write_cmd(unsigned_operand(state.player_shot.y), DRAW_PLAYER_SHOT_SET_PIXEL);
-
-			when DRAW_PLAYER_SHOT_SET_PIXEL =>
-				write_cmd(
-					create_gfx_instr(
-						opcode => OPCODE_SET_PIXEL
-					), DO_FRAME_SYNC
-				);
+				if (sc_busy = '0') then
+					state_nxt.fsm_state <= DO_FRAME_SYNC;
+				end if;
 			
 			--██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ 
 			--██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗
