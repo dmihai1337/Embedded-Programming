@@ -296,8 +296,8 @@ package body interpreter_pkg is
 			color := state.secondary_color;
 		end if;
 		
-		for i in 0 to to_integer(state.abd.width) loop
-			for j in 0 to to_integer(state.abd.height) loop
+		for i in 0 to to_integer(state.abd.width) - 1 loop
+			for j in 0 to to_integer(state.abd.height) - 1 loop
 				addr := to_integer(unsigned(get_addr(state.abd.base, state.abd.width,
 					i, j)));
 				vram_write(addr, '0', "00000000" & color, vram);

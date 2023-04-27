@@ -9,7 +9,6 @@ use work.audio_ctrl_pkg.all;
 use work.dualshock_pkg.all;
 use work.vga_gfx_ctrl_pkg.all;
 
-
 entity top is
 	port (
 		--50 MHz clock input
@@ -289,7 +288,7 @@ begin
 		synth_ctrl     => synth_ctrl
 	);
 
-	game_inst : entity work.game(ex1)
+	game_inst : entity work.game(ex2)
 	port map (
 		clk              => clk,
 		res_n            => res_n,

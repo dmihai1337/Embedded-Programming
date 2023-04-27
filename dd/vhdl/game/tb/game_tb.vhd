@@ -60,7 +60,7 @@ begin
 		synth_ctrl => synth_ctrl
 	);
 	
-	interpreter : entity work.gfx_cmd_interpreter
+	gfx_cmd_interpreter_inst : entity work.gfx_cmd_interpreter
 	generic map (
 		OUTPUT_DIR 	=> OUTPUT_DIR
 	)

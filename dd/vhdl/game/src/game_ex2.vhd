@@ -9,6 +9,7 @@ use work.audio_ctrl_pkg.all;
 use work.mem_pkg.all;
 use work.gfx_init_pkg.all;
 use work.game_util_pkg.all;
+use work.decimal_printer_pkg.all;
 
 architecture ex2 of game is
 
@@ -35,17 +36,18 @@ architecture ex2 of game is
 		DRAW_PLAYER_INC_GP, DRAW_PLAYER_SET_COLOR, DRAW_PLAYER_BB_CHAR, DRAW_PLAYER_BB_CHAR_ARG,
 		DRAW_PLAYER_SHOT, DRAW_PLAYER_SHOT_WAIT, CHECK_SI_FIELD, WAIT_SI_CHECK, UPDATE_SI_FIELD,
 		DRAW_SIS_MOVE_GP, DRAW_SIS_MOVE_GP_X, DRAW_SIS_MOVE_GP_Y, DRAW_SIS_WAIT_INIT, DRAW_SIS_FIELD,
-		DELETE_SPACE_INVADER, 
+		DELETE_SPACE_INVADER, CHECK_COLLISION_TYPE, GET_DEAD_INVADER_X, GET_DEAD_INVADER_Y,
 		DRAW_LINE_MOVE_GP, DRAW_LINE_MOVE_GP_X, DRAW_LINE_MOVE_GP_Y, DRAW_LINE, DRAW_HLINE_DX,
 		DRAW_SCORE_DIGITS, DRAW_SCORE_WAIT, DRAW_TEXT_MOVE_GP, DRAW_TEXT_MOVE_GP_X, DRAW_TEXT_MOVE_GP_Y, 
-		INIT_TEXT, DRAW_TEXT, DRAW_TEXT_BB_EFFECT
+		INIT_TEXT, DRAW_TEXT, DRAW_TEXT_BB_EFFECT,
+		DRAW_SPECIAL_MOVE_GP, DRAW_SPECIAL_MOVE_GP_X, DRAW_SPECIAL_MOVE_GP_Y, DRAW_SPECIAL_SET_BB_EFFECT,
+		DRAW_SPECIAL_BB_CHAR, DRAW_SPECIAL_BB_CHAR_ARG,
+		DRAW_SPECIAL_RESET_BB_EFFECT, MOVE_SPECIAL_INVADER
 	);
 	
 	-- pseudo states
 	constant DRAW_PLAYER : fsm_state_t := DRAW_PLAYER_MOVE_GP;
 	constant DRAW_SPACE_INVADERS : fsm_state_t := DRAW_SIS_MOVE_GP;
-
-	type cmd_array is array(33 downto 0) of std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
 
 	type state_t is record
 		fsm_state : fsm_state_t;
@@ -57,13 +59,17 @@ architecture ex2 of game is
 		si_dir : std_logic;
 		si_xoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
 		si_yoff : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+		special_invader_offset : std_logic_vector(log2c(DISPLAY_WIDTH)-1 downto 0);
+		special_invader_active : std_logic;
 		si_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0);
-		si_mvmt : integer;
-		frames_count : integer;
+		si_mvmt : std_logic_vector(15 downto 0);
+		frames_count : std_logic_vector(15 downto 0);
 		score : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
-		lives : integer;
+		lives : std_logic_vector(2 downto 0);
 		txt_cmd_idx : integer;
-		txt_cmds : cmd_array;
+		txt_cmds : std_logic_vector(545 downto 0);
+		count_dead_invader : integer;
+		dead_invader_loc : sifield_location_t;
 	end record;
 	
 	signal state, state_nxt : state_t;
@@ -78,7 +84,8 @@ architecture ex2 of game is
 	signal si_busy : std_logic;
 	signal si_init, si_draw, si_check : std_logic := '0';
 	signal si_rd, si_wr : std_logic := '0';
-	signal si_rd_loc, si_wr_loc : sifield_location_t := (others=>(others=>'0'));
+	signal si_rd_loc : sifield_location_t;
+	signal si_wr_loc : sifield_location_t := (others=>(others=>'0'));
 	signal si_rd_data, si_wr_data : std_logic_vector(SIFIELD_DATA_WIDTH-1 downto 0);
 	signal si_gfx_cmd : std_logic_vector(15 downto 0);
 	signal si_gfx_cmd_wr : std_logic;
@@ -94,7 +101,6 @@ architecture ex2 of game is
 	signal dp_busy : std_logic;
 	signal dp_start: std_logic := '0';
 	signal dp_number : std_logic_vector(15 downto 0);
-	signal dp_bmpidx : std_logic_vector(WIDTH_BMPIDX-1 downto 0) := "010";
 	
 	impure function get_random_location return sifield_location_t is
 		variable return_value : sifield_location_t := (others=>(others=>'0'));
@@ -109,6 +115,7 @@ architecture ex2 of game is
 		
 		return return_value;
 	end function;
+
 begin
 
 	rumble <= ctrl_data.ls_y when ctrl_data.r3 else x"00";
@@ -161,7 +168,7 @@ begin
 		wr_data => si_wr_data
 	);
 
-	decimal_printer : entity work.decimal_printer(structure)
+	decimal_printer_inst : decimal_printer
 	port map (
 		clk => clk,
 		res_n => res_n,
@@ -174,7 +181,7 @@ begin
 		busy => dp_busy,
 
 		number => state.score,
-		bmpidx => dp_bmpidx
+		bmpidx => "010"
 	);
 
 	sync : process(clk, res_n)
@@ -185,13 +192,12 @@ begin
 				last_controller_state => DUALSHOCK_RST,
 				frame_buffer_selector => '0',
 				player_shot => SHOT_RESET,
+				special_invader_active => '0',
 				si_bmpidx => "011",
 				si_dir => '0',
-				si_mvmt => 0,
-				frames_count => 0,
-				lives => 3,
 				txt_cmd_idx => 0,
-				txt_cmds => (others=>(others=>'0')),
+				count_dead_invader => 0,
+				dead_invader_loc => (others => (others=>'0')),
 				others => (others=>'0')
 			);
 		elsif (rising_edge(clk)) then
@@ -209,192 +215,199 @@ begin
 			end if;
 		end procedure;
 
-		function build_array(lives : integer) return cmd_array is
+		function build_array(l : integer) return std_logic_vector is
 			variable count : integer := 0;
-			variable arr : cmd_array := (others => (others => '0'));
+			variable arr : std_logic_vector(545 downto 0) := (others => '0');
+			variable lives : integer := l;
 		begin
-			arr(count) := create_gfx_instr(
+			arr(count + 15 downto count) := create_gfx_instr(
 						opcode => OPCODE_BB_CHAR,
 						bmpidx => "010",
 						am => '1',
 						mx => '1'
 					);
-			count := count + 1;
+			count := count + 16;
 
-			arr(count) := "0011100000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0011100000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
 
-			arr(count) := "0011001000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0011001000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
 
-			arr(count) := "0100110000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0100110000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
 
-			arr(count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
 
-			arr(count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
 
-			arr(count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+			arr(count + 15 downto count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
 
-			for i in 1 to lives loop
-				arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "011",
-						am => '1',
-						mx => '1'
-					);
-				count := count + 1;
+			if (lives > 0) then
+				arr(count + 15 downto count) := create_gfx_instr(
+																	opcode => OPCODE_BB_CHAR,
+																	bmpidx => "011",
+																	am => '1',
+																	mx => '1'
+																);
+				count := count + 16;
 
-				arr(count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
-				count := count + 1;
-			end loop;
+				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
+				count := count + 16;
+			end if;
+			lives := lives - 1;
 
-			arr(count) :=	create_gfx_instr(
-								opcode => OPCODE_MOVE_GP
-							);
-			count := count + 1;
+			if (lives > 0) then
+				arr(count + 15 downto count) := create_gfx_instr(
+																	opcode => OPCODE_BB_CHAR,
+																	bmpidx => "011",
+																	am => '1',
+																	mx => '1'
+																);
+				count := count + 16;
 
-			arr(count) := std_logic_vector(to_unsigned(160, 16));
-			count := count + 1;
-
-			arr(count) := std_logic_vector(to_unsigned(232, 16));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0010011000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0011111000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0100010000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
-
-			arr(count) := create_gfx_instr(
-						opcode => OPCODE_BB_CHAR,
-						bmpidx => "010",
-						am => '1',
-						mx => '1'
-					);
-			count := count + 1;
-
-			arr(count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
-			count := count + 1;
+				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
+				count := count + 16;
+			end if;
+			lives := lives - 1;
 			
-			arr(count) := (others=>'0');
+			if (lives > 0) then
+				arr(count + 15 downto count) := create_gfx_instr(
+																	opcode => OPCODE_BB_CHAR,
+																	bmpidx => "011",
+																	am => '1',
+																	mx => '1'
+																);
+				count := count + 16;
+
+				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
+				count := count + 16;
+			end if;
+			lives := lives - 1;
+
+			arr(count + 15 downto count) :=	create_gfx_instr(
+																	opcode => OPCODE_MOVE_GP
+																);
+			count := count + 16;
+
+			arr(count + 15 downto count) := std_logic_vector(to_unsigned(160, 16));
+			count := count + 16;
+
+			arr(count + 15 downto count) := std_logic_vector(to_unsigned(232, 16));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0010011000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0011111000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0100010000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+
+			arr(count + 15 downto count) := create_gfx_instr(
+																opcode => OPCODE_BB_CHAR,
+																bmpidx => "010",
+																am => '1',
+																mx => '1'
+															);
+			count := count + 16;
+
+			arr(count + 15 downto count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
+			count := count + 16;
+			
+			arr(count + 15 downto count) := (others=>'0');
 
 			return arr;
-		end function;
-
-		function get_si_location(	sc_info : collision_info_t;
-									state : state_t) return sifield_location_t is
-			variable aux : shot_t := state.player_shot;
-			variable result : sifield_location_t;
-			variable count : integer;
-		begin
-			count := 0;
-			while(to_integer(unsigned(aux.x)) > to_integer(unsigned(state.si_xoff))) loop
-				aux.x := std_logic_vector(unsigned(aux.x) - 16);
-				count := count + 1;
-			end loop;
-			result.x := std_logic_vector(to_unsigned(count - 1, log2c(SIFIELD_WIDTH)));
-			
-			count := 0;
-			while(to_integer(unsigned(aux.y)) > to_integer(unsigned(state.si_yoff))) loop
-				aux.y := std_logic_vector(unsigned(aux.y) - 16);
-				count := count + 1;
-			end loop;
-			result.y := std_logic_vector(to_unsigned(count - 1, log2c(SIFIELD_HEIGHT)));
-
-			return result;
 		end function;
 	
 		function unsigned_operand(operand : std_logic_vector) return std_logic_vector is
@@ -427,6 +440,9 @@ begin
 		si_check <= '0';
 		si_rd <= '0';
 		si_wr <= '0';
+		si_wr_data <= "00";
+		si_wr_loc <= (others => (others => '0'));
+		si_rd_loc <= (others => (others => '0'));
 
 		sc_draw <= '0';
 		sc_check <= '0';
@@ -543,16 +559,18 @@ begin
 				write_cmd(std_logic_vector(to_unsigned(232, 16)), INIT_TEXT);
 
 			when INIT_TEXT =>
-				state_nxt.txt_cmds <= build_array(state.lives);
+				state_nxt.txt_cmds <= build_array(3 - to_integer(unsigned(state.lives)));
 				state_nxt.fsm_state <= DRAW_TEXT;
 
 			when DRAW_TEXT =>
-				if (state.txt_cmds(state.txt_cmd_idx) = "0000000000000000") then
+				if (state.txt_cmds((state.txt_cmd_idx + 15) downto state.txt_cmd_idx) = "0000000000000000") then
 					state_nxt.fsm_state <= DRAW_SCORE_DIGITS;
 					state_nxt.txt_cmd_idx <= 0;
 				else
-					write_cmd(state.txt_cmds(state.txt_cmd_idx), DRAW_TEXT);
-					state_nxt.txt_cmd_idx <= state.txt_cmd_idx + 1;
+					write_cmd(state.txt_cmds((state.txt_cmd_idx + 15) downto state.txt_cmd_idx), DRAW_TEXT);
+					if (gfx_cmd_full = '0') then
+						state_nxt.txt_cmd_idx <= state.txt_cmd_idx + 16;
+					end if;
 				end if;
 
 			when DRAW_SCORE_DIGITS =>
@@ -569,7 +587,7 @@ begin
 
 			when CHECK_SI_FIELD =>
 				si_check <= '1';
-				state_nxt.frames_count <= state.frames_count + 1;
+				state_nxt.frames_count <= std_logic_vector(unsigned(state.frames_count) + 1);
 
 				state_nxt.fsm_state <= WAIT_SI_CHECK;
 
@@ -580,7 +598,7 @@ begin
 			
 			when UPDATE_SI_FIELD =>
 
-				state_nxt.si_mvmt <= to_integer(unsigned(si_info.count)) / 4 + 10;
+				state_nxt.si_mvmt <= std_logic_vector(to_unsigned(((to_integer(unsigned(si_info.count))) / 4 + 10), 16));
 				state_nxt.fsm_state <= MOVE_PLAYER;
 
 			when MOVE_PLAYER =>
@@ -607,7 +625,7 @@ begin
 				state_nxt.fsm_state <= MOVE_SPACE_INVADERS;
 			
 			when MOVE_SPACE_INVADERS =>
-				if (state.frames_count = state.si_mvmt - 1) then
+				if (unsigned(state.frames_count) = unsigned(state.si_mvmt) - 1) then
 
 					if (state.si_bmpidx = "011") then
 						state_nxt.si_bmpidx <= "100";
@@ -632,8 +650,28 @@ begin
 							std_logic_vector(unsigned(state.si_xoff) + 1);
 						end if;
 					end if;
-					state_nxt.frames_count <= 0;
+
+					if (state.special_invader_active = '0' and prng_value(5 downto 0) = "000000") then
+						state_nxt.special_invader_active <= '1';
+					end if;
+
+					state_nxt.frames_count <= std_logic_vector(to_unsigned(0, 16));
 				end if;
+
+				state_nxt.fsm_state <= MOVE_SPECIAL_INVADER;
+
+			when MOVE_SPECIAL_INVADER =>
+				
+				if (state.special_invader_active = '1') then
+					if (to_integer(unsigned(state.si_xoff)) >= DISPLAY_WIDTH) then
+						state_nxt.special_invader_active <= '0';
+						state_nxt.special_invader_offset <= std_logic_vector(to_unsigned(0, 9));
+					else
+						state_nxt.special_invader_offset <=
+						std_logic_vector(unsigned(state.special_invader_offset) + 1);
+					end if;
+				end if;
+					
 				state_nxt.fsm_state <= DRAW_PLAYER;
 			
 			when MOVE_PLAYER_SHOT =>
@@ -671,19 +709,17 @@ begin
 					state_nxt.fsm_state <= DRAW_PLAYER_SHOT;
 					if (sc_info.color /= "00000000") then
 						report "game: collision detected ";
-						state_nxt.fsm_state <= DELETE_SPACE_INVADER;
+						state_nxt.fsm_state <= CHECK_COLLISION_TYPE;
 					end if;
 				end if;
 
-			when DELETE_SPACE_INVADER =>
+			when CHECK_COLLISION_TYPE =>
 
 				if (sc_info.color = COLOR_MAGENTA) then
 					state_nxt.score <= std_logic_vector(unsigned(state.score) + 10);
+					state_nxt.special_invader_active <= '0';
+					state_nxt.fsm_state <= DO_FRAME_SYNC;
 				else
-					si_wr <= '1';
-					si_wr_loc <= get_si_location(sc_info, state);
-					si_wr_data <= "11";
-
 					if (sc_info.color = COLOR_RED) then
 						state_nxt.score <= std_logic_vector(unsigned(state.score) + 1);
 					elsif (sc_info.color = COLOR_YELLOW) then
@@ -691,10 +727,41 @@ begin
 					elsif (sc_info.color = COLOR_BLUE) then
 						state_nxt.score <= std_logic_vector(unsigned(state.score) + 4);
 					end if;
+
+					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
 				end if;
 
 				state_nxt.player_shot.active <= '0';
+
+			when GET_DEAD_INVADER_X =>
+				if (to_integer(unsigned(state.player_shot.x)) > to_integer(unsigned(state.si_xoff))) then
+					state_nxt.player_shot.x <= std_logic_vector(unsigned(state.player_shot.x) - 16);
+					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
+				else
+					state_nxt.dead_invader_loc.x <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_WIDTH)));
+					state_nxt.count_dead_invader <= 0;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
+				end if;
+
+			when GET_DEAD_INVADER_Y =>
+				if (to_integer(unsigned(state.player_shot.y)) > to_integer(unsigned(state.si_yoff))) then
+					state_nxt.player_shot.y <= std_logic_vector(unsigned(state.player_shot.y) - 16);
+					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
+				else
+					state_nxt.dead_invader_loc.y <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_HEIGHT)));
+					state_nxt.count_dead_invader <= 0;
+					state_nxt.fsm_state <= DELETE_SPACE_INVADER;
+				end if;
+
+			when DELETE_SPACE_INVADER =>
+				si_wr <= '1';
+				si_wr_data <= "11";
+				si_wr_loc <= state.dead_invader_loc;
+
 				state_nxt.fsm_state <= DO_FRAME_SYNC;
+				
 			
 			--███████╗██╗  ██╗ ██████╗ ████████╗
 			--██╔════╝██║  ██║██╔═══██╗╚══██╔══╝
@@ -792,8 +859,56 @@ begin
 				gfx_cmd <= si_gfx_cmd;
 
 				if (si_busy = '0') then
-					state_nxt.fsm_state <= MOVE_PLAYER_SHOT;
+					if (state.special_invader_active = '0') then
+						state_nxt.fsm_state <= MOVE_PLAYER_SHOT;
+					else 
+						state_nxt.fsm_state <= DRAW_SPECIAL_MOVE_GP;
+					end if;
 				end if;
+
+			when DRAW_SPECIAL_MOVE_GP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_MOVE_GP
+					), DRAW_SPECIAL_MOVE_GP_X
+				);
+			
+			when DRAW_SPECIAL_MOVE_GP_X =>
+				write_cmd(unsigned_operand(state.special_invader_offset), DRAW_SPECIAL_MOVE_GP_Y);
+
+			when DRAW_SPECIAL_MOVE_GP_Y =>
+				write_cmd(std_logic_vector(to_unsigned(10, 16)), DRAW_SPECIAL_SET_BB_EFFECT);
+
+			when DRAW_SPECIAL_SET_BB_EFFECT =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_SET_BB_EFFECT,
+						maskop => MASKOP_XOR,
+						mask => COLOR_MAGENTA
+					), DRAW_SPECIAL_BB_CHAR
+				);
+
+			when DRAW_SPECIAL_BB_CHAR =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_BB_CHAR,
+						bmpidx => "011",
+						am => '1'
+					), DRAW_SPECIAL_BB_CHAR_ARG
+				);
+
+			when DRAW_SPECIAL_BB_CHAR_ARG =>
+				write_cmd(
+					"0000" & "11" & "0000" & std_logic_vector(to_unsigned(16, 6)), DRAW_SPECIAL_RESET_BB_EFFECT
+				);
+
+			when DRAW_SPECIAL_RESET_BB_EFFECT =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_SET_BB_EFFECT,
+						maskop => MASKOP_NOP
+					), MOVE_PLAYER_SHOT
+				);
 
 		end case;
 	end process;

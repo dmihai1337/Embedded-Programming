@@ -209,6 +209,8 @@ begin
 						vram_write(to_integer(unsigned(std_logic_vector'
 						(operands(1)(4 downto 0) & operands(0)))) + seq_count, command(0),
 						gfx_cmd, vram);
+						if (seq_count < 50) then
+						end if;
 						if (command(0) = '0') then
 							seq_count := seq_count + 1;
 						else
