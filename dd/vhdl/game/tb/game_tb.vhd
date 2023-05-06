@@ -100,7 +100,6 @@ begin
 		ds.right <= '1';
 
 		wait until N = 5;
-		ds.start <= '0';
 
 		ds.right <= '0';
 

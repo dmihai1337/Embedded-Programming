@@ -24,6 +24,9 @@ architecture ex2 of game is
 		12, 8, 12, 16
 	);
 
+	constant COLOR_WHITE : std_logic_vector(7 downto 0) := "11111111";
+	constant COLOR_GREEN : std_logic_vector(7 downto 0) := "01011100";
+
 	type fsm_state_t is (
 		RESET, WAIT_INIT,
 		DO_FRAME_SYNC, WAIT_FRAME_SYNC, SWTICH_FRAME_BUFFER,
@@ -44,7 +47,11 @@ architecture ex2 of game is
 		DRAW_SPECIAL_BB_CHAR, DRAW_SPECIAL_BB_CHAR_ARG,
 		DRAW_SPECIAL_RESET_BB_EFFECT, MOVE_SPECIAL_INVADER, INIT_PAUSE, PAUSED, INIT_GAME_OVER, GAME_OVER,
 		DRAW_SCORE_GAME_OVER_WAIT, DRAW_SCORE_GAME_OVER, MOVE_SI_SHOTS, CHECK_SI_SHOT, RESET_SI_WAIT,
-		CHOOSE_SI_SHOOTER, CHOOSE_SI_SHOOTER_CHECK, FIND_FREE_IDX, CHOOSE_SCREEN
+		CHOOSE_SI_SHOOTER, CHOOSE_SI_SHOOTER_CHECK, FIND_FREE_IDX, CHOOSE_SCREEN, DRAW_BUNKERS_MOVE_GP,
+		DRAW_BUNKERS_MOVE_GP_X, DRAW_BUNKERS_MOVE_GP_Y, DRAW_BUNKERS_BB_FULL, DRAW_BUNKERS_SET_BB_EFFECT,
+		DRAW_BUNKER_DAMAGE_MOVE_GP, DRAW_BUNKER_DAMAGE_MOVE_GP_X, DRAW_BUNKER_DAMAGE_MOVE_GP_Y,
+		DRAW_BUNKER_DAMAGE_BB_EFFECT, DRAW_BUNKER_DAMAGE_BB_CHAR_ARG, DRAW_BUNKER_DAMAGE,
+		DRAW_BUNKER_DAMAGE_ACTIVATE_BITMAP, DRAW_BUNKER_DAMAGE_DEACTIVATE_BITMAP
 	);
 	
 	-- pseudo states
@@ -708,6 +715,15 @@ begin
 		end if;
 
 		case state.fsm_state is
+
+			-- ██╗███╗   ██╗██╗████████╗
+			-- ██║████╗  ██║██║╚══██╔══╝
+			-- ██║██╔██╗ ██║██║   ██║   
+			-- ██║██║╚██╗██║██║   ██║   
+			-- ██║██║ ╚████║██║   ██║   
+			-- ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+			--      
+
 			when RESET =>
 				state_nxt.fsm_state <= WAIT_INIT;
 				gfx_initializer_start <= '1';
@@ -768,6 +784,15 @@ begin
 					), DRAW_LINE_MOVE_GP
 				);
 				state_nxt.fsm_state <= MOVE_PLAYER;
+
+
+			-- ███╗   ███╗ ██████╗ ██╗   ██╗███████╗███╗   ███╗███████╗███╗   ██╗████████╗███████╗
+			-- ████╗ ████║██╔═══██╗██║   ██║██╔════╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+			-- ██╔████╔██║██║   ██║██║   ██║█████╗  ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   ███████╗
+			-- ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+			-- ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   ███████║
+			-- ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+			--            
 
 			when MOVE_PLAYER =>
 				if (ctrl_data.left = '1') then
@@ -893,6 +918,145 @@ begin
 					state_nxt.fsm_state <= DRAW_LINE_MOVE_GP;
 				end if;
 			
+			when MOVE_PLAYER_SHOT =>
+				state_nxt.last_controller_state <= ctrl_data;
+				if (state.shots(0).active = '1') then
+					sc_check <= '1';
+					state_nxt.fsm_state <= CHECK_SHOT_WAIT;
+					shots_y(0) := 
+						std_logic_vector(signed(state.shots(0).y) - PLAYER_SHOT_SPEED);
+					state_nxt.shots(0).y <= shots_y(0);
+					if (unsigned(shots_y(0)) > DISPLAY_HEIGHT) then
+						state_nxt.shots(0).active <= '0';
+						state_nxt.fsm_state <= MOVE_SI_SHOTS;
+					end if;
+				else
+					state_nxt.fsm_state <= MOVE_SI_SHOTS;
+					if (state.last_controller_state.cross = '0' and ctrl_data.cross = '1') then
+						report "game: firing shot";
+						state_nxt.shots(0).active <= '1';
+						state_nxt.shots(0).x <= 
+							std_logic_vector(resize(unsigned(state.player_x),
+							state.shots(0).x'length));
+						state_nxt.shots(0).y <=
+							std_logic_vector(resize(unsigned(state.player_y), 
+							state.shots(0).y'length));
+						state_nxt.fsm_state <= MOVE_SI_SHOTS;
+					end if;
+				end if;
+			
+			when CHECK_SHOT_WAIT =>
+				gfx_cmd_wr <= sc_gfx_cmd_wr;
+				gfx_cmd <= sc_gfx_cmd;
+
+				if (sc_busy = '0') then
+					state_nxt.fsm_state <= MOVE_SI_SHOTS;
+					if (sc_info.color /= "00000000") then
+						report "game: collision detected ";
+						state_nxt.fsm_state <= CHECK_COLLISION_TYPE;
+					end if;
+				end if;
+
+			when CHECK_COLLISION_TYPE =>
+
+				if (sc_info.color = COLOR_MAGENTA) then
+					state_nxt.score <= std_logic_vector(unsigned(state.score) + 10);
+					state_nxt.special_invader_active <= '0';
+					state_nxt.fsm_state <= MOVE_SI_SHOTS;
+				elsif (sc_info.color = COLOR_WHITE) then
+					state_nxt.fsm_state <= MOVE_SI_SHOTS;
+				else
+					if (sc_info.color = COLOR_RED) then
+						state_nxt.score <= std_logic_vector(unsigned(state.score) + 1);
+					elsif (sc_info.color = COLOR_YELLOW) then
+						state_nxt.score <= std_logic_vector(unsigned(state.score) + 2);
+					elsif (sc_info.color = COLOR_BLUE) then
+						state_nxt.score <= std_logic_vector(unsigned(state.score) + 4);
+					end if;
+
+					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
+				end if;
+
+				state_nxt.shots(0).active <= '0';
+
+			when GET_DEAD_INVADER_X =>
+				if (signed(state.shots(0).x) > signed(state.si_xoff)) then
+					state_nxt.shots(0).x <= std_logic_vector(signed(state.shots(0).x) - 16);
+					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
+				else
+					state_nxt.dead_invader_loc.x <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_WIDTH)));
+					state_nxt.count_dead_invader <= 0;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
+				end if;
+
+			when GET_DEAD_INVADER_Y =>
+				if (signed(state.shots(0).y) > signed(state.si_yoff)) then
+					state_nxt.shots(0).y <= std_logic_vector(signed(state.shots(0).y) - 16);
+					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
+					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
+				else
+					state_nxt.dead_invader_loc.y <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_HEIGHT)));
+					state_nxt.count_dead_invader <= 0;
+					state_nxt.fsm_state <= DELETE_SPACE_INVADER;
+				end if;
+
+			when DELETE_SPACE_INVADER =>
+				si_wr <= '1';
+				si_wr_data <= "11";
+				si_wr_loc <= state.dead_invader_loc;
+
+				state_nxt.fsm_state <= MOVE_SI_SHOTS;
+
+			when MOVE_SI_SHOTS =>
+				
+				if (state.shots_idx <= 4) then
+					if (state.shots(state.shots_idx).active = '1' and state.shots_idx /= 0) then
+						sc_check <= '1';
+						state_nxt.fsm_state <= CHECK_SI_SHOT;
+						shots_y(state.shots_idx) := 
+							std_logic_vector(signed(state.shots(state.shots_idx).y) + PLAYER_SHOT_SPEED);
+						state_nxt.shots(state.shots_idx).y <= shots_y(state.shots_idx);
+						if (to_integer(unsigned(shots_y(state.shots_idx))) > 225) then
+							state_nxt.shots(state.shots_idx).active <= '0';
+							state_nxt.fsm_state <= MOVE_SI_SHOTS;
+						end if;
+					else
+						state_nxt.shots_idx <= state.shots_idx + 1;
+					end if;
+				else
+					state_nxt.fsm_state <= DRAW_SHOTS;
+					state_nxt.shots_idx <= 0;
+				end if;
+
+			when CHECK_SI_SHOT =>
+				
+				gfx_cmd_wr <= sc_gfx_cmd_wr;
+				gfx_cmd <= sc_gfx_cmd;
+
+				if (sc_busy = '0') then
+					if (sc_info.color = COLOR_WHITE) then 
+						state_nxt.fsm_state <= DRAW_BUNKER_DAMAGE_ACTIVATE_BITMAP;
+						state_nxt.shots(state.shots_idx).active <= '0';
+					else
+						if (sc_info.color = COLOR_GREEN) then
+							state_nxt.lives <= std_logic_vector(unsigned(state.lives) + 1);
+							state_nxt.player_x <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/2,
+								state.player_x'length));
+								state_nxt.shots(state.shots_idx).active <= '0';
+						end if;
+						state_nxt.fsm_state <= MOVE_SI_SHOTS;
+					end if;
+					state_nxt.shots_idx <= state.shots_idx + 1;
+				end if;
+
+			-- ████████╗███████╗██╗  ██╗████████╗
+			-- ╚══██╔══╝██╔════╝╚██╗██╔╝╚══██╔══╝
+			--    ██║   █████╗   ╚███╔╝    ██║   
+			--    ██║   ██╔══╝   ██╔██╗    ██║   
+			--    ██║   ███████╗██╔╝ ██╗   ██║   
+			--    ╚═╝   ╚══════╝╚═╝  ╚═╝   ╚═╝   
+
 			when INIT_GAME_OVER => 
 				state_nxt.txt_cmds <= build_array_game_over;
 				state_nxt.fsm_state <= GAME_OVER;
@@ -960,7 +1124,7 @@ begin
 				write_cmd(create_gfx_instr(
 					opcode => OPCODE_SET_BB_EFFECT,
 					maskop => MASKOP_XOR,
-					mask => "11111111"
+					mask => COLOR_WHITE
 				), DRAW_TEXT_MOVE_GP);
 
 				if (gfx_cmd_full = '0') then
@@ -1039,134 +1203,105 @@ begin
 
 			when RESET_SI_WAIT =>
 				if (si_busy = '0') then
-					state_nxt.fsm_state <= DRAW_PLAYER;
+					state_nxt.fsm_state <= DRAW_BUNKERS_SET_BB_EFFECT;
 				end if;
+
+
+			-- ██████╗ ██╗   ██╗███╗   ██╗██╗  ██╗███████╗██████╗ ███████╗
+			-- ██╔══██╗██║   ██║████╗  ██║██║ ██╔╝██╔════╝██╔══██╗██╔════╝
+			-- ██████╔╝██║   ██║██╔██╗ ██║█████╔╝ █████╗  ██████╔╝███████╗
+			-- ██╔══██╗██║   ██║██║╚██╗██║██╔═██╗ ██╔══╝  ██╔══██╗╚════██║
+			-- ██████╔╝╚██████╔╝██║ ╚████║██║  ██╗███████╗██║  ██║███████║
+			-- ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝
+			--              
+			when DRAW_BUNKER_DAMAGE_ACTIVATE_BITMAP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_ACTIVATE_BMP,
+						bmpidx => "101"
+					), DRAW_BUNKER_DAMAGE_MOVE_GP
+				);
+
+			when DRAW_BUNKER_DAMAGE_MOVE_GP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_MOVE_GP
+					), DRAW_BUNKER_DAMAGE_MOVE_GP_X
+				);
 			
-			when MOVE_PLAYER_SHOT =>
-				state_nxt.last_controller_state <= ctrl_data;
-				if (state.shots(0).active = '1') then
-					sc_check <= '1';
-					state_nxt.fsm_state <= CHECK_SHOT_WAIT;
-					shots_y(0) := 
-						std_logic_vector(signed(state.shots(0).y) - PLAYER_SHOT_SPEED);
-					state_nxt.shots(0).y <= shots_y(0);
-					if (unsigned(shots_y(0)) > DISPLAY_HEIGHT) then
-						state_nxt.shots(0).active <= '0';
-						state_nxt.fsm_state <= MOVE_SI_SHOTS;
-					end if;
+			when DRAW_BUNKER_DAMAGE_MOVE_GP_X =>
+				write_cmd(std_logic_vector(resize(signed(state.shots(state.shots_idx - 1).x) - 2, 16)),
+					DRAW_BUNKER_DAMAGE_MOVE_GP_Y);
+
+			when DRAW_BUNKER_DAMAGE_MOVE_GP_Y =>
+				write_cmd(std_logic_vector(resize(signed(state.shots(state.shots_idx - 1).y) - 190 - 2, 16)),
+					DRAW_BUNKER_DAMAGE_BB_EFFECT);
+
+			when DRAW_BUNKER_DAMAGE_BB_EFFECT =>
+				write_cmd(create_gfx_instr(
+					opcode => OPCODE_SET_BB_EFFECT,
+					maskop => MASKOP_NOP
+				), DRAW_BUNKER_DAMAGE);
+
+			when DRAW_BUNKER_DAMAGE =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_BB_CHAR,
+						bmpidx => "011",
+						rot => prng_value(1 downto 0),
+						am => '1'
+					), DRAW_BUNKER_DAMAGE_BB_CHAR_ARG
+				);
+
+			when DRAW_BUNKER_DAMAGE_BB_CHAR_ARG =>
+				if (prng_value(2) = '0') then
+					write_cmd(
+						std_logic_vector(to_unsigned(80, 10)) & 
+						std_logic_vector(to_unsigned(8, 6)), DRAW_BUNKER_DAMAGE_DEACTIVATE_BITMAP
+					);
 				else
-					state_nxt.fsm_state <= MOVE_SI_SHOTS;
-					if (state.last_controller_state.cross = '0' and ctrl_data.cross = '1') then
-						report "game: firing shot";
-						state_nxt.shots(0).active <= '1';
-						state_nxt.shots(0).x <= 
-							std_logic_vector(resize(unsigned(state.player_x),
-							state.shots(0).x'length));
-						state_nxt.shots(0).y <=
-							std_logic_vector(resize(unsigned(state.player_y), 
-							state.shots(0).y'length));
-						state_nxt.fsm_state <= MOVE_SI_SHOTS;
-					end if;
+					write_cmd(
+						std_logic_vector(to_unsigned(88, 10)) & 
+						std_logic_vector(to_unsigned(8, 6)), DRAW_BUNKER_DAMAGE_DEACTIVATE_BITMAP
+					);
 				end if;
+
+			when DRAW_BUNKER_DAMAGE_DEACTIVATE_BITMAP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_ACTIVATE_BMP,
+						bmpidx => (2 downto 1 => '0', 0=>state.frame_buffer_selector)
+					), MOVE_SI_SHOTS
+				);
+
+			when DRAW_BUNKERS_SET_BB_EFFECT =>
+				write_cmd(create_gfx_instr(
+					opcode => OPCODE_SET_BB_EFFECT,
+					maskop => MASKOP_NOP
+				), DRAW_BUNKERS_MOVE_GP);
+
+			when DRAW_BUNKERS_MOVE_GP =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_MOVE_GP
+					), DRAW_BUNKERS_MOVE_GP_X
+				);
+
+			when DRAW_BUNKERS_MOVE_GP_X =>
+				write_cmd(std_logic_vector(to_unsigned(0, 16)), DRAW_BUNKERS_MOVE_GP_Y);
+
+			when DRAW_BUNKERS_MOVE_GP_Y =>
+				write_cmd(std_logic_vector(to_unsigned(190, 16)), DRAW_BUNKERS_BB_FULL);
 			
-			when CHECK_SHOT_WAIT =>
-				gfx_cmd_wr <= sc_gfx_cmd_wr;
-				gfx_cmd <= sc_gfx_cmd;
+			when DRAW_BUNKERS_BB_FULL =>
+				write_cmd(
+					create_gfx_instr(
+						opcode => OPCODE_BB_FULL,
+						bmpidx => "101"
+					), DRAW_PLAYER
+				);
 
-				if (sc_busy = '0') then
-					state_nxt.fsm_state <= MOVE_SI_SHOTS;
-					if (sc_info.color /= "00000000") then
-						report "game: collision detected ";
-						state_nxt.fsm_state <= CHECK_COLLISION_TYPE;
-					end if;
-				end if;
 
-			when CHECK_COLLISION_TYPE =>
-
-				if (sc_info.color = COLOR_MAGENTA) then
-					state_nxt.score <= std_logic_vector(unsigned(state.score) + 10);
-					state_nxt.special_invader_active <= '0';
-					state_nxt.fsm_state <= MOVE_SI_SHOTS;
-				else
-					if (sc_info.color = COLOR_RED) then
-						state_nxt.score <= std_logic_vector(unsigned(state.score) + 1);
-					elsif (sc_info.color = COLOR_YELLOW) then
-						state_nxt.score <= std_logic_vector(unsigned(state.score) + 2);
-					elsif (sc_info.color = COLOR_BLUE) then
-						state_nxt.score <= std_logic_vector(unsigned(state.score) + 4);
-					end if;
-
-					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
-				end if;
-
-				state_nxt.shots(0).active <= '0';
-
-			when GET_DEAD_INVADER_X =>
-				if (signed(state.shots(0).x) > signed(state.si_xoff)) then
-					state_nxt.shots(0).x <= std_logic_vector(signed(state.shots(0).x) - 16);
-					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
-					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
-				else
-					state_nxt.dead_invader_loc.x <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_WIDTH)));
-					state_nxt.count_dead_invader <= 0;
-					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
-				end if;
-
-			when GET_DEAD_INVADER_Y =>
-				if (signed(state.shots(0).y) > signed(state.si_yoff)) then
-					state_nxt.shots(0).y <= std_logic_vector(signed(state.shots(0).y) - 16);
-					state_nxt.count_dead_invader <= state.count_dead_invader + 1;
-					state_nxt.fsm_state <= GET_DEAD_INVADER_Y;
-				else
-					state_nxt.dead_invader_loc.y <= std_logic_vector(to_unsigned(state.count_dead_invader - 1, log2c(SIFIELD_HEIGHT)));
-					state_nxt.count_dead_invader <= 0;
-					state_nxt.fsm_state <= DELETE_SPACE_INVADER;
-				end if;
-
-			when DELETE_SPACE_INVADER =>
-				si_wr <= '1';
-				si_wr_data <= "11";
-				si_wr_loc <= state.dead_invader_loc;
-
-				state_nxt.fsm_state <= MOVE_SI_SHOTS;
-
-			when MOVE_SI_SHOTS =>
-				
-				if (state.shots_idx <= 4) then
-					if (state.shots(state.shots_idx).active = '1' and state.shots_idx /= 0) then
-						sc_check <= '1';
-						state_nxt.fsm_state <= CHECK_SI_SHOT;
-						shots_y(state.shots_idx) := 
-							std_logic_vector(signed(state.shots(state.shots_idx).y) + PLAYER_SHOT_SPEED);
-						state_nxt.shots(state.shots_idx).y <= shots_y(state.shots_idx);
-						if (to_integer(unsigned(shots_y(state.shots_idx))) > 225) then
-							state_nxt.shots(state.shots_idx).active <= '0';
-							state_nxt.fsm_state <= MOVE_SI_SHOTS;
-						end if;
-					else
-						state_nxt.shots_idx <= state.shots_idx + 1;
-					end if;
-				else
-					state_nxt.fsm_state <= DRAW_SHOTS;
-					state_nxt.shots_idx <= 0;
-				end if;
-
-			when CHECK_SI_SHOT =>
-				
-				gfx_cmd_wr <= sc_gfx_cmd_wr;
-				gfx_cmd <= sc_gfx_cmd;
-
-				if (sc_busy = '0') then
-					if (sc_info.color = "01011100") then
-						state_nxt.lives <= std_logic_vector(unsigned(state.lives) + 1);
-						state_nxt.player_x <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/2,
-							state.player_x'length));
-					end if;
-					state_nxt.fsm_state <= MOVE_SI_SHOTS;
-					state_nxt.shots_idx <= state.shots_idx + 1;
-				end if;
-				
-			
 			--███████╗██╗  ██╗ ██████╗ ████████╗███████╗
 			--██╔════╝██║  ██║██╔═══██╗╚══██╔══╝██╔════╝
 			--███████╗███████║██║   ██║   ██║   ███████╗
@@ -1176,7 +1311,7 @@ begin
 			
 			when DRAW_SHOTS =>
 				if (state.shots_idx <= 4) then
-
+					
 					if (state.shots(state.shots_idx).active = '1') then
 						sc_draw <= '1';
 						state_nxt.fsm_state <= DRAW_SHOT_WAIT;
@@ -1230,7 +1365,7 @@ begin
 				write_cmd(create_gfx_instr(
 					opcode => OPCODE_SET_BB_EFFECT,
 					maskop => MASKOP_XOR,
-					mask => "01011100"
+					mask => COLOR_GREEN
 				), DRAW_PLAYER_BB_CHAR);
 
 			when DRAW_PLAYER_BB_CHAR =>
@@ -1247,6 +1382,7 @@ begin
 					std_logic_vector(to_unsigned(64, 10)) & 
 					std_logic_vector(to_unsigned(PLAYER_WIDTH, 6)), DRAW_SPACE_INVADERS
 				);
+
 
 			--██╗███╗   ██╗██╗   ██╗ █████╗ ██████╗ ███████╗██████╗ ███████╗
 			--██║████╗  ██║██║   ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝
