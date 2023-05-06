@@ -92,14 +92,15 @@ begin
 		
 		-- fire a shot
 		ds.cross <= '1';
-
-		wait until N = 4;
+		
+		wait until N = 2;
 
 		ds.cross <= '0';
 		-- move right
 		ds.right <= '1';
 
-		wait until N = 35;
+		wait until N = 5;
+		ds.start <= '0';
 
 		ds.right <= '0';
 
