@@ -357,6 +357,12 @@ begin
 		end if;
 	end process;
 
+	aux(15) <= ds_clk;
+	aux(14) <= ds_ack;
+	aux(13) <= ds_att;
+	aux(12) <= ds_data;
+	aux(11) <= ds_cmd;
+
 	ledg(0) <= ds.triangle;
 	ledg(1) <= ds.square;
 	ledg(2) <= ds.cross;
