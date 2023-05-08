@@ -85,6 +85,14 @@ architecture ex2 of game is
 		dead_invader_loc : sifield_location_t;
 		y_reached : std_logic;
 		si_shooter : sifield_location_t;
+		rumble_active : std_logic;
+		rumble_counter : std_logic_vector(26 downto 0); -- count to 50.000.000 (1 sec vibration)
+		vibrated_on_game_over : std_logic;
+		sound_high_active : std_logic;
+		sound_low_active : std_logic;
+		sound_counter : std_logic_vector(24 downto 0); -- count to 12.500.000 (0.25 sec tone)
+		played_tone_on_game_over : std_logic;
+		play_successive_sounds : std_logic;
 	end record;
 
 	constant RESET_STATE : state_t := (
@@ -104,6 +112,12 @@ architecture ex2 of game is
 		paused => '0',
 		game_over => '0',
 		y_reached => '0',
+		rumble_active => '0',
+		vibrated_on_game_over => '0',
+		sound_high_active => '0',
+		sound_low_active => '0',
+		played_tone_on_game_over => '0',
+		play_successive_sounds => '0',
 		others => (others=>'0')
 	);
 	
@@ -152,8 +166,6 @@ architecture ex2 of game is
 	end function;
 
 begin
-
-	rumble <= ctrl_data.ls_y when ctrl_data.r3 else x"00";
 
 	shot_ctrl : entity work.shot_ctrl(arch)
 	port map (
@@ -703,15 +715,81 @@ begin
 		end loop;
 		curr_si_shooter := state.si_shooter;
 
+		-- PAUSE / UNPAUSE
+
 		if (state.last_controller_state.start = '0' and ctrl_data.start = '1') then
 			state_nxt.paused <= not state.paused;
 		end if;
 		state_nxt.last_controller_state.start <= ctrl_data.start;
 
+		-- GAME OVER
+
 		if ((state.lives = "100") or (state.y_reached = '1')) then
+
+			if (state.vibrated_on_game_over = '0') then
+				state_nxt.vibrated_on_game_over <= '1';
+				state_nxt.rumble_counter <= (others => '0');
+				state_nxt.rumble_active <= '1';
+			end if;
+
+			if (state.played_tone_on_game_over = '0') then
+				state_nxt.played_tone_on_game_over <= '1';
+				state_nxt.sound_low_active <= '1';
+				state_nxt.sound_counter <= (others => '0');
+				state_nxt.play_successive_sounds <= '1';
+			end if;
+
 			state_nxt.game_over <= '1';
 		else
 			state_nxt.game_over <= state.game_over;
+		end if;
+
+		-- RUMBLE DRIVER
+
+		if (state.rumble_active = '0') then
+			rumble <= x"00";
+		else
+			if (to_integer(unsigned(state.rumble_counter)) = 50_000_000) then
+				rumble <= x"00";
+				state_nxt.rumble_counter <= (others => '0');
+				state_nxt.rumble_active <= '0';
+			else
+				rumble <= x"80";
+				state_nxt.rumble_counter <= std_logic_vector(unsigned(state.rumble_counter) + 1);
+			end if;
+		end if;
+
+		-- SOUND DRIVER
+
+		if (state.sound_low_active = '0') then
+			synth_ctrl(0).play <= '0';
+		else
+			if (to_integer(unsigned(state.sound_counter)) = 12_500_000) then
+				synth_ctrl(0).play <= '0';
+				state_nxt.sound_counter <= (others => '0');
+				state_nxt.sound_low_active <= '0';
+
+				if (state.play_successive_sounds = '1') then
+					state_nxt.sound_high_active <= '1';
+					state_nxt.play_successive_sounds <= '0';
+				end if;
+			else
+				synth_ctrl(0).play <= '1';
+				state_nxt.sound_counter <= std_logic_vector(unsigned(state.sound_counter) + 1);
+			end if;
+		end if;
+
+		if (state.sound_high_active = '0') then
+			synth_ctrl(1).play <= '0';
+		else
+			if (to_integer(unsigned(state.sound_counter)) = 12_500_000) then
+				synth_ctrl(1).play <= '0';
+				state_nxt.sound_counter <= (others => '0');
+				state_nxt.sound_high_active <= '0';
+			else
+				synth_ctrl(1).play <= '1';
+				state_nxt.sound_counter <= std_logic_vector(unsigned(state.sound_counter) + 1);
+			end if;
 		end if;
 
 		case state.fsm_state is
@@ -914,6 +992,8 @@ begin
 				elsif ((state.paused = '1') and (state.game_over = '1')) then
 					state_nxt <= RESET_STATE;
 					state_nxt.last_controller_state <= state.last_controller_state;
+					state_nxt.rumble_active <= state.rumble_active;
+					state_nxt.rumble_counter <= state.rumble_counter;
 				else 
 					state_nxt.fsm_state <= DRAW_LINE_MOVE_GP;
 				end if;
@@ -977,6 +1057,11 @@ begin
 					state_nxt.fsm_state <= GET_DEAD_INVADER_X;
 				end if;
 
+				if (sc_info.color /= COLOR_WHITE) then
+					state_nxt.sound_counter <= (others => '0');
+					state_nxt.sound_high_active <= '1';
+				end if;
+
 				state_nxt.shots(0).active <= '0';
 
 			when GET_DEAD_INVADER_X =>
@@ -1038,12 +1123,22 @@ begin
 					if (sc_info.color = COLOR_WHITE) then 
 						state_nxt.fsm_state <= DRAW_BUNKER_DAMAGE_ACTIVATE_BITMAP;
 						state_nxt.shots(state.shots_idx).active <= '0';
+
+						state_nxt.sound_counter <= (others => '0');
+						state_nxt.sound_low_active <= '1';
 					else
 						if (sc_info.color = COLOR_GREEN) then
+							state_nxt.rumble_counter <= (others => '0');
+							state_nxt.rumble_active <= '1';
 							state_nxt.lives <= std_logic_vector(unsigned(state.lives) + 1);
 							state_nxt.player_x <= std_logic_vector(to_unsigned(DISPLAY_WIDTH/2,
 								state.player_x'length));
 								state_nxt.shots(state.shots_idx).active <= '0';
+
+							
+							state_nxt.sound_counter <= (others => '0');
+							state_nxt.sound_low_active <= '1';
+							state_nxt.play_successive_sounds <= '1';
 						end if;
 						state_nxt.fsm_state <= MOVE_SI_SHOTS;
 					end if;
@@ -1466,10 +1561,8 @@ begin
 
 	synth_ctrl(0).high_time <= x"30";
 	synth_ctrl(0).low_time <= x"30"; 
-	synth_ctrl(0).play <= ctrl_data.left;
 	synth_ctrl(1).high_time <= x"22";
 	synth_ctrl(1).low_time <= x"22"; 
-	synth_ctrl(1).play <=  ctrl_data.right;
 
 	prng : block
 		signal lfsr : std_logic_vector(14 downto 0); --15 bit
