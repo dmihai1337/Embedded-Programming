@@ -254,9 +254,7 @@ begin
 			variable count : integer := 0;
 			variable arr : std_logic_vector(545 downto 0) := (others => '0');
 		begin
-			arr(count + 15 downto count) :=	create_gfx_instr(
-																	opcode => OPCODE_MOVE_GP
-																);
+			arr(count + 15 downto count) :=	create_gfx_instr(opcode => OPCODE_MOVE_GP);
 			count := count + 16;
 
 			arr(count + 15 downto count) := std_logic_vector(to_unsigned(135, 16));
