@@ -340,9 +340,7 @@ begin
 			variable count : integer := 0;
 			variable arr : std_logic_vector(545 downto 0) := (others => '0');
 		begin
-			arr(count + 15 downto count) :=	create_gfx_instr(
-																	opcode => OPCODE_MOVE_GP
-																);
+			arr(count + 15 downto count) :=	create_gfx_instr(opcode => OPCODE_MOVE_GP);
 			count := count + 16;
 
 			arr(count + 15 downto count) := std_logic_vector(to_unsigned(120, 16));
@@ -395,9 +393,7 @@ begin
 			arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;	
 
-			arr(count + 15 downto count) :=	create_gfx_instr(
-																	opcode => OPCODE_MOVE_GP
-																);
+			arr(count + 15 downto count) :=	create_gfx_instr(opcode => OPCODE_MOVE_GP);
 			count := count + 16;
 
 			arr(count + 15 downto count) := std_logic_vector(to_unsigned(160, 16));
@@ -450,9 +446,7 @@ begin
 			arr(count + 15 downto count) := "0100010000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
-			arr(count + 15 downto count) :=	create_gfx_instr(
-																	opcode => OPCODE_MOVE_GP
-																);
+			arr(count + 15 downto count) :=	create_gfx_instr(opcode => OPCODE_MOVE_GP);
 			count := count + 16;
 
 			arr(count + 15 downto count) := std_logic_vector(to_unsigned(136, 16));
@@ -483,55 +477,55 @@ begin
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+					opcode => OPCODE_BB_CHAR,
+					bmpidx => "010",
+					am => '1',
+					mx => '1'
+				);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0011001000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0100110000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
@@ -539,11 +533,11 @@ begin
 
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
-																	opcode => OPCODE_BB_CHAR,
-																	bmpidx => "011",
-																	am => '1',
-																	mx => '1'
-																);
+					opcode => OPCODE_BB_CHAR,
+					bmpidx => "010",
+					am => '1',
+					mx => '1'
+				);
 				count := count + 16;
 
 				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
@@ -553,11 +547,11 @@ begin
 
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
-																	opcode => OPCODE_BB_CHAR,
-																	bmpidx => "011",
-																	am => '1',
-																	mx => '1'
-																);
+					opcode => OPCODE_BB_CHAR,
+					bmpidx => "010",
+					am => '1',
+					mx => '1'
+				);
 				count := count + 16;
 
 				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
@@ -567,11 +561,11 @@ begin
 			
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
-																	opcode => OPCODE_BB_CHAR,
-																	bmpidx => "011",
-																	am => '1',
-																	mx => '1'
-																);
+					opcode => OPCODE_BB_CHAR,
+					bmpidx => "010",
+					am => '1',
+					mx => '1'
+				);
 				count := count + 16;
 
 				arr(count + 15 downto count) := "0001000000" & std_logic_vector(to_unsigned(16, 6));
@@ -579,9 +573,7 @@ begin
 			end if;
 			lives := lives - 1;
 
-			arr(count + 15 downto count) :=	create_gfx_instr(
-																	opcode => OPCODE_MOVE_GP
-																);
+			arr(count + 15 downto count) :=	create_gfx_instr(opcode => OPCODE_MOVE_GP);
 			count := count + 16;
 
 			arr(count + 15 downto count) := std_logic_vector(to_unsigned(160, 16));
@@ -591,66 +583,66 @@ begin
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0010011000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0011111000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0100010000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
 			count := count + 16;
 
 			arr(count + 15 downto count) := create_gfx_instr(
-																opcode => OPCODE_BB_CHAR,
-																bmpidx => "010",
-																am => '1',
-																mx => '1'
-															);
+				opcode => OPCODE_BB_CHAR,
+				bmpidx => "010",
+				am => '1',
+				mx => '1'
+			);
 			count := count + 16;
 
 			arr(count + 15 downto count) := "0001010000" & std_logic_vector(to_unsigned(8, 6));
