@@ -303,7 +303,13 @@ begin
 		synth_ctrl       => synth_ctrl
 	);
 
-	dualshock_ctrl_inst : precompiled_dualshock_ctrl
+	dualshock_ctrl_inst : entity work.dualshock_ctrl(arch)
+	generic map(
+		CLK_FREQ => 50_000_000,
+		DS_CLK_FREQ => 250_000,
+		REFRESH_TIMEOUT => 500_000,
+		BIT_TIME => 200
+	)
 	port map (
 		clk         => clk,
 		res_n       => res_n,
@@ -357,12 +363,6 @@ begin
 		end if;
 	end process;
 
-	aux(15) <= ds_clk;
-	aux(14) <= ds_ack;
-	aux(13) <= ds_att;
-	aux(12) <= ds_data;
-	aux(11) <= ds_cmd;
-
 	ledg(0) <= ds.triangle;
 	ledg(1) <= ds.square;
 	ledg(2) <= ds.cross;
@@ -383,7 +383,13 @@ begin
 	ledr(7) <= ds.sel;
 	ledr(17 downto 8) <= switches_int(17 downto 8);
 
-	aux <= switches_int(15 downto 0);
+	aux(15) <= ds_clk;
+	aux(14) <= ds_ack;
+	aux(13) <= ds_att;
+	aux(12) <= ds_data;
+	aux(11) <= ds_cmd;
+
+	aux(10 downto 0) <= (others => '0');
 
 ------------------------------------------------------------------------------
 --    ██████╗ ██████╗  ██████╗        ██████╗  ██████╗ ██████╗ ████████╗    --

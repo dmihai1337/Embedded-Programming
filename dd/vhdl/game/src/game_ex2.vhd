@@ -532,7 +532,7 @@ begin
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
 					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
+					bmpidx => "011",
 					am => '1',
 					mx => '1'
 				);
@@ -546,7 +546,7 @@ begin
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
 					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
+					bmpidx => "011",
 					am => '1',
 					mx => '1'
 				);
@@ -560,7 +560,7 @@ begin
 			if (lives - 1 > 0) then
 				arr(count + 15 downto count) := create_gfx_instr(
 					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
+					bmpidx => "011",
 					am => '1',
 					mx => '1'
 				);

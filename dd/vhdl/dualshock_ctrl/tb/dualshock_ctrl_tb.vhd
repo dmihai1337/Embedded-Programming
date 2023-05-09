@@ -53,8 +53,8 @@ begin
 	begin	
 
 		res_n <= '0';
-		ds_data <= '0';
-		ds_ack <= '0';
+		ds_data <= '1';
+		ds_ack <= '1';
 
 		big_motor <= (others => '0');
 		small_motor <= '0';
@@ -69,8 +69,232 @@ begin
 		wait until rising_edge(clk);	
 		wait until rising_edge(clk);
 		
+		wait until ds_att = '0';
 
-		wait for 20 ms;
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+
+		wait for 8 us;
+
+		wait until ds_att = '0';
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+		wait until falling_edge(ds_clk);
+		ds_data <= '1';
+
+		wait for 4 us;
+		ds_ack <= '0';
+		wait for 2 us;
+		ds_ack <= '1';
+		wait for 2 us;
+
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+		wait until falling_edge(ds_clk);
+		ds_data <= '0';
+
+		wait for 30 ms;
+
 		stop_clock <= true;
 		report "simulation done";
 		wait;
