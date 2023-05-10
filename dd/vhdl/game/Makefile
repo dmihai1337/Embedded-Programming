@@ -70,6 +70,7 @@ clean:
 	rm -f vsim.wlf
 	rm -f log
 	rm -fr work
+	rm *.ppm
 
 .PHONY: clean
 .PHONY: compile

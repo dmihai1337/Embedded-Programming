@@ -8,11 +8,10 @@ VHDL_FILES = \
 	../dualshock_ctrl/src/dualshock_pkg.vhd\
 	./src/dualshock_ctrl.vhd
 
-TB_FILES = \
-	./tb/dualshock_ctrl_tb.vhd
+TB_FILES =
 
 TIME_RESOLUTION = 1ps
-TB = dualshock_ctrl_tb
+TB = 
 
 # For the simulation time -all can also be selected. Questa then simulates until no more singal changes occour.
 SIM_TIME = -all

@@ -32,6 +32,22 @@ end entity;
 
 
 architecture arch of dualshock_ctrl is
+
+	function reverse_vector (vec : std_logic_vector) return std_logic_vector is
+		variable res : std_logic_vector(7 downto 0);
+	begin
+		res(0) := vec(vec'high - 0);
+		res(1) := vec(vec'high - 1);
+		res(2) := vec(vec'high - 2);
+		res(3) := vec(vec'high - 3);
+		res(4) := vec(vec'high - 4);
+		res(5) := vec(vec'high - 5);
+		res(6) := vec(vec'high - 6);
+		res(7) := vec(vec'high - 7);
+
+		return res;
+	end function;
+
 	type fsm_state_t is (
 		PACKET_TIMEOUT, ATTENTION, WAIT_TIMEOUT, SET_COMMAND, CLK_LOW, CLK_HIGH, WAIT_ACK, WAIT_BEFORE_NEXT_BYTE, SAMPLE
 	);
@@ -42,11 +58,12 @@ architecture arch of dualshock_ctrl is
 
 	type state_t is record
 		fsm_state : fsm_state_t;
+		cmd_type : std_logic_vector(2 downto 0);
 		ctrl_data_buffer : dualshock_t;
 		clk_cnt : std_logic_vector(20 downto 0);
 		bit_cnt : std_logic_vector(2 downto 0);
 		byte_cnt : std_logic_vector(3 downto 0);
-		ctrl_data_shift_reg : std_logic_vector(48 downto 0);
+		ctrl_data_shift_reg : std_logic_vector(47 downto 0);
 		cmd : std_logic_vector(7 downto 0);
 		ctrl_mode : ctrl_mode_t;
 		bytes_total : std_logic_vector(3 downto 0);
@@ -110,6 +127,37 @@ begin
 					state_nxt.ctrl_data_buffer.sel <= not state.ctrl_data_shift_reg(15);
 
 					state_nxt.updated <= '0';
+
+				elsif (state.ctrl_mode = ANALOG and state.updated = '1') then
+
+					state_nxt.ctrl_data_buffer.ls_y <= 
+						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(7 downto 0))));
+					state_nxt.ctrl_data_buffer.ls_x <= 
+						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(15 downto 8))));
+					state_nxt.ctrl_data_buffer.rs_y <= 
+						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(23 downto 16))));
+					state_nxt.ctrl_data_buffer.rs_x <= 
+						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(31 downto 24))));
+
+					state_nxt.ctrl_data_buffer.square <= not state.ctrl_data_shift_reg(32);
+					state_nxt.ctrl_data_buffer.cross <= not state.ctrl_data_shift_reg(33);
+					state_nxt.ctrl_data_buffer.circle <= not state.ctrl_data_shift_reg(34);
+					state_nxt.ctrl_data_buffer.triangle <= not state.ctrl_data_shift_reg(35);
+					state_nxt.ctrl_data_buffer.r1 <= not state.ctrl_data_shift_reg(36);
+					state_nxt.ctrl_data_buffer.l1 <= not state.ctrl_data_shift_reg(37);
+					state_nxt.ctrl_data_buffer.r2 <= not state.ctrl_data_shift_reg(38);
+					state_nxt.ctrl_data_buffer.l2 <= not state.ctrl_data_shift_reg(39);
+					state_nxt.ctrl_data_buffer.left <= not state.ctrl_data_shift_reg(40);
+					state_nxt.ctrl_data_buffer.down <= not state.ctrl_data_shift_reg(41);
+					state_nxt.ctrl_data_buffer.right <= not state.ctrl_data_shift_reg(42);
+					state_nxt.ctrl_data_buffer.up <= not state.ctrl_data_shift_reg(43);
+					state_nxt.ctrl_data_buffer.start <= not state.ctrl_data_shift_reg(44);
+					state_nxt.ctrl_data_buffer.r3 <= not state.ctrl_data_shift_reg(45);
+					state_nxt.ctrl_data_buffer.l3 <= not state.ctrl_data_shift_reg(46);
+					state_nxt.ctrl_data_buffer.sel <= not state.ctrl_data_shift_reg(47);
+
+					state_nxt.updated <= '0';
+
 				end if;
 
 				ds_clk <= '1';
@@ -139,12 +187,75 @@ begin
 
 			when SET_COMMAND =>
 				
-				case to_integer(unsigned(state.byte_cnt)) is
-					
-					when 0 => state_nxt.cmd <= "00000001";
-					when 1 => state_nxt.cmd <= "01000010";
-					when others => state_nxt.cmd <= "00000000";
+				case state.cmd_type is 
 
+					when "000" => -- ENTER CONFIG
+						case to_integer(unsigned(state.byte_cnt)) is
+							
+							when 0 => state_nxt.cmd <= "00000001";
+							when 1 => state_nxt.cmd <= "01000011";
+							when 3 => state_nxt.cmd <= "00000001";
+							when others => state_nxt.cmd <= "00000000";
+
+						end case;
+
+					when "001" => -- ACTIVATE ANALOG
+						case to_integer(unsigned(state.byte_cnt)) is
+								
+							when 0 => state_nxt.cmd <= "00000001";
+							when 1 => state_nxt.cmd <= "01000100";
+							when 3 => state_nxt.cmd <= "00000001";
+							when 4 => state_nxt.cmd <= "00000011";
+							when others => state_nxt.cmd <= "00000000";
+
+						end case;
+
+					when "010" => -- ENABLE MOTOR
+						case to_integer(unsigned(state.byte_cnt)) is
+								
+							when 0 => state_nxt.cmd <= "00000001";
+							when 1 => state_nxt.cmd <= "01001101";
+							when 4 => state_nxt.cmd <= "00000001";
+							when 5 => state_nxt.cmd <= "11111111";
+							when 6 => state_nxt.cmd <= "11111111";
+							when 7 => state_nxt.cmd <= "11111111";
+							when 8 => state_nxt.cmd <= "11111111";
+							when others => state_nxt.cmd <= "00000000";
+
+						end case;
+
+					when "011" => -- EXIT CONFIG
+						case to_integer(unsigned(state.byte_cnt)) is
+								
+							when 0 => state_nxt.cmd <= "00000001";
+							when 1 => state_nxt.cmd <= "01000011";
+							when 4 => state_nxt.cmd <= "01011010";
+							when 5 => state_nxt.cmd <= "01011010";
+							when 6 => state_nxt.cmd <= "01011010";
+							when 7 => state_nxt.cmd <= "01011010";
+							when 8 => state_nxt.cmd <= "01011010";
+							when others => state_nxt.cmd <= "00000000";
+
+						end case;
+
+					when "100" => -- MAIN POLL
+						case to_integer(unsigned(state.byte_cnt)) is
+								
+							when 0 => state_nxt.cmd <= "00000001";
+							when 1 => state_nxt.cmd <= "01000010";
+							when 3 => state_nxt.cmd <= big_motor;
+							when 4 => 
+								if (small_motor = '1') then
+									state_nxt.cmd <= x"ff";
+								else
+									state_nxt.cmd <= x"00";
+								end if;
+							when others => state_nxt.cmd <= "00000000";
+
+						end case;
+
+					when others => -- invalid
+						
 				end case;
 
 				state_nxt.fsm_state <= CLK_LOW;
@@ -168,9 +279,13 @@ begin
 
 			when SAMPLE =>
 				
-				if (to_integer(unsigned(state.byte_cnt)) >= 2) then
-					state_nxt.ctrl_data_shift_reg <= state.ctrl_data_shift_reg(47 downto 0) & ds_data;
-				elsif (to_integer(unsigned(state.byte_cnt)) = 1) then
+				if (state.cmd_type = "000" or state.cmd_type = "100") then
+					if (to_integer(unsigned(state.byte_cnt)) > 2) then
+						state_nxt.ctrl_data_shift_reg <= state.ctrl_data_shift_reg(46 downto 0) & ds_data;
+					end if;
+				end if;
+
+				if (to_integer(unsigned(state.byte_cnt)) = 1) then
 					state_nxt.mode_and_bytes_shift_reg <= state.mode_and_bytes_shift_reg(6 downto 0) & ds_data;
 				end if;
 
@@ -180,7 +295,7 @@ begin
 
 				state_nxt.fsm_state <= CLK_HIGH;
 
-			when CLK_HIGH =>		
+			when CLK_HIGH =>	
 
 				if (to_integer(unsigned(state.clk_cnt)) = BIT_TIME / 2) then
 
@@ -209,9 +324,16 @@ begin
 				ds_cmd <= state.cmd(to_integer(unsigned(state.bit_cnt)));
 
 			when WAIT_ACK =>
+
+				if (to_integer(unsigned(state.clk_cnt)) = 4 * BIT_TIME) then -- 12 us = 3 * BIT_TIME, wait an extra cycle for good measure
+					state_nxt <= RESET_STATE;
+				else
+					state_nxt.clk_cnt <= std_logic_vector(unsigned(state.clk_cnt) + 1);
+				end if;
 					
 				if (ds_ack = '0') then
 					state_nxt.fsm_state <= WAIT_BEFORE_NEXT_BYTE;
+					state_nxt.clk_cnt <= (others => '0');
 				end if;
 
 				if (to_integer(unsigned(state.byte_cnt)) = 2) then
@@ -246,7 +368,14 @@ begin
 						state_nxt.byte_cnt <= (others => '0');
 						state_nxt.fsm_state <= PACKET_TIMEOUT;
 						state_nxt.bytes_total <= (others => '0');
-						state_nxt.updated <= '1';
+
+						if (to_integer(unsigned(state.cmd_type)) < 4) then
+							state_nxt.cmd_type <= std_logic_vector(unsigned(state.cmd_type) + 1);
+						end if;
+
+						if (to_integer(unsigned(state.cmd_type)) = 0 or to_integer(unsigned(state.cmd_type)) = 4) then
+							state_nxt.updated <= '1';
+						end if;
 
 						ds_att <= '1';
 					else
