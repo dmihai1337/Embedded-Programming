@@ -21,6 +21,7 @@ VHDL_FILES = \
 	../game_util/src/sifield.vhd\
 	../game_util/src/shot_ctrl.vhd\
 	../decimal_printer/src/decimal_printer.vho\
+	./src/mygame_pkg.vhd\
 	./src/game.vhd\
 	./src/game_ex2.vhd
 
@@ -70,7 +71,7 @@ clean:
 	rm -f vsim.wlf
 	rm -f log
 	rm -fr work
-	rm *.ppm
+	rm -f *.ppm
 
 .PHONY: clean
 .PHONY: compile

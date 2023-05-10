@@ -5,8 +5,8 @@
 
 % enter your data here
 \authors{
-	Vorname Nachname, Matr. Nr. 0123456 \par
-	{\small e0123456@student.tuwien.ac.at} \par
+	Mihai-Andrei Dancu, Matr. Nr. 12123694 \par
+	{\small e12123694@student.tuwien.ac.at} \par
 }
 
 
@@ -25,6 +25,17 @@
 
 \begin{qa}{Briefly describe the architecture of your \textsf{game} module. Are there any submodules? What is their purpose? How many FSMs did you use? (approximately 6-8 sentences, you can also include figures)}
 
+	My game module architecture is implemented using a single FSM with multiple states, which can broadly be categorised in a number of pseudo-states. These are the \textbf{reset and init} state 
+	(where the bitmaps are created and the double frame buffering is implemented), the \textbf{movement of the game objects and collision detection} (player, invaders, shots), the \textbf{drawing of text} 
+	(the pause menu, game over menu or the score and number of lives left) and the \textbf{drawing of the actual game objects} (player, invaders, shots, bunkers). I have used the following submodule: 
+	\textbf{shot\_ctrl} for the drawing of shots, \textbf{sifield} for managing the space invaders field and \textbf{decimal\_printer} which converts the current score to ASCII printable, readable
+	digits. \textbf{Figure 1} shows the operations per frame of the game that the FSM executes. Moreover, I created the \textbf{mygame_pkg} package to keep the source file cleaner and shorter.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.75\linewidth]{dia/pdf/game_op_per_frame.pdf}
+		\caption{Operations per frame}
+	\end{figure}
 \end{qa}
 
 
