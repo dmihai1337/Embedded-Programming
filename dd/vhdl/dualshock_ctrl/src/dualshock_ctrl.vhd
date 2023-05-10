@@ -131,13 +131,13 @@ begin
 				elsif (state.ctrl_mode = ANALOG and state.updated = '1') then
 
 					state_nxt.ctrl_data_buffer.ls_y <= 
-						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(7 downto 0))));
+						std_logic_vector(unsigned(reverse_vector(state.ctrl_data_shift_reg(7 downto 0))));
 					state_nxt.ctrl_data_buffer.ls_x <= 
-						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(15 downto 8))));
+						std_logic_vector(unsigned(reverse_vector(state.ctrl_data_shift_reg(15 downto 8))));
 					state_nxt.ctrl_data_buffer.rs_y <= 
-						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(23 downto 16))));
+						std_logic_vector(unsigned(reverse_vector(state.ctrl_data_shift_reg(23 downto 16))));
 					state_nxt.ctrl_data_buffer.rs_x <= 
-						std_logic_vector(255 - unsigned(not reverse_vector(state.ctrl_data_shift_reg(31 downto 24))));
+						std_logic_vector(unsigned(reverse_vector(state.ctrl_data_shift_reg(31 downto 24))));
 
 					state_nxt.ctrl_data_buffer.square <= not state.ctrl_data_shift_reg(32);
 					state_nxt.ctrl_data_buffer.cross <= not state.ctrl_data_shift_reg(33);
@@ -262,7 +262,7 @@ begin
 
 				ds_clk <= '1';
 				ds_att <= '0';
-				ds_cmd <= '1';
+				ds_cmd <= '0';
 
 			when CLK_LOW =>
 
