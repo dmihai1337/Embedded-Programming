@@ -108,7 +108,7 @@ begin
 					state_nxt.clk_cnt <= std_logic_vector(unsigned(state.clk_cnt) + 1);
 				end if;
 
-				if (state.ctrl_mode = DIGITAL and state.updated = '1') then
+				if ((state.ctrl_mode = DIGITAL or state.ctrl_mode = CONFIG) and state.updated = '1') then
 					state_nxt.ctrl_data_buffer.square <= not state.ctrl_data_shift_reg(0);
 					state_nxt.ctrl_data_buffer.cross <= not state.ctrl_data_shift_reg(1);
 					state_nxt.ctrl_data_buffer.circle <= not state.ctrl_data_shift_reg(2);
@@ -243,13 +243,14 @@ begin
 								
 							when 0 => state_nxt.cmd <= "00000001";
 							when 1 => state_nxt.cmd <= "01000010";
-							when 3 => state_nxt.cmd <= big_motor;
-							when 4 => 
+							when 3 => 
 								if (small_motor = '1') then
 									state_nxt.cmd <= x"ff";
 								else
 									state_nxt.cmd <= x"00";
 								end if;
+							when 4 => 
+								state_nxt.cmd <= big_motor;
 							when others => state_nxt.cmd <= "00000000";
 
 						end case;

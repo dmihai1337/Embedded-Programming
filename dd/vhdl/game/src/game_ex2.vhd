@@ -222,7 +222,7 @@ begin
 				state_nxt.rumble_counter <= (others => '0');
 				state_nxt.rumble_active <= '0';
 			else
-				rumble <= x"80";
+				rumble <= x"FF";
 				state_nxt.rumble_counter <= std_logic_vector(unsigned(state.rumble_counter) + 1);
 			end if;
 		end if;
@@ -387,7 +387,12 @@ begin
 				end if;
 			
 			when MOVE_SPACE_INVADERS =>
-				if (unsigned(state.frames_count) = unsigned(state.si_mvmt) - 1) then
+
+				-- including > bc of sifield update where si_mvmt is updated => frames_count could become greater than
+				-- si_mvmt and the sifield would freeze if we only checked for equality. There are other solutions to
+				-- this problem, such as subtracting the difference from the frame counter, but this is the solution I chose
+				
+				if (unsigned(state.frames_count) >= unsigned(state.si_mvmt) - 1) then 
 
 					if (state.si_bmpidx = "011") then
 						state_nxt.si_bmpidx <= "100";

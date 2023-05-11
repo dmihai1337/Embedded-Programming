@@ -146,6 +146,7 @@ architecture arch of top is
 	signal rumble : std_logic_vector(7 downto 0);
 	
 	signal ssd_res_n, sw_enable, sw_stick_selector, sw_axis_selector, btn_change_sign_mode_n : std_logic;
+	signal ds_data_synched, ds_ack_synched : std_logic;
 	
 	signal ds : dualshock_t;
 begin
@@ -303,6 +304,30 @@ begin
 		synth_ctrl       => synth_ctrl
 	);
 
+	ds_data_sync : sync
+	generic map (
+		SYNC_STAGES => SYNC_STAGES,
+		RESET_VALUE => '0'
+	)
+	port map (
+		clk => clk,
+		res_n => '1',
+		data_in => ds_data,
+		data_out => ds_data_synched
+	);
+
+	ds_ack_sync : sync
+	generic map (
+		SYNC_STAGES => SYNC_STAGES,
+		RESET_VALUE => '0'
+	)
+	port map (
+		clk => clk,
+		res_n => '1',
+		data_in => ds_ack,
+		data_out => ds_ack_synched
+	);
+
 	dualshock_ctrl_inst : entity work.dualshock_ctrl(arch)
 	generic map(
 		CLK_FREQ => 50_000_000,
@@ -315,9 +340,9 @@ begin
 		res_n       => res_n,
 		ds_clk      => ds_clk, -- blue
 		ds_cmd      => ds_cmd, -- orange
-		ds_data     => ds_data, -- brown
+		ds_data     => ds_data_synched, -- brown
 		ds_att      => ds_att, -- yellow
-		ds_ack      => ds_ack, -- green
+		ds_ack      => ds_ack_synched, -- green
 		ctrl_data   => ds,
 		big_motor   => rumble,
 		small_motor => ds.l3
@@ -384,9 +409,9 @@ begin
 	ledr(17 downto 8) <= switches_int(17 downto 8);
 
 	aux(15) <= ds_clk;
-	aux(14) <= ds_ack;
+	aux(14) <= ds_ack_synched;
 	aux(13) <= ds_att;
-	aux(12) <= ds_data;
+	aux(12) <= ds_data_synched;
 	aux(11) <= ds_cmd;
 
 	aux(10 downto 0) <= (others => '0');
