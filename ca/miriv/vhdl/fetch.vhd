@@ -55,6 +55,11 @@ begin
 
 	mem_busy <= mem_in.busy;
 	pc_out <= pc_register;
-	mem_out <= MEM_OUT_NOP;
+
+	mem_out.wrdata <= (others => '0');
+	mem_out.byteena <= (others => '1');
+	mem_out.address <= pc_register(PC_WIDTH - 1 downto 2);
+	mem_out.rd <= '1';
+	mem_out.wr <= '0';
 
 end architecture;

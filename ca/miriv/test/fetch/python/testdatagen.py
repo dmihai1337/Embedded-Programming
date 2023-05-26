@@ -39,7 +39,7 @@ if __name__ == "__main__":
                 pc_register = pc_in if pcsrc == 1 else pc_register + 4
                 pc_out = pc_register
                 instr = mem_in
-                mem_out = 15
+                mem_out = ((pc_register >> 2) << 38) + 31
 
                 outf.write(f"{mem_busy:032b}\n")
                 outf.write(f"{pc_out:016b}\n")
@@ -65,7 +65,7 @@ if __name__ == "__main__":
             pc_register = pc_in if pcsrc == 1 else pc_register + 4
             pc_out = pc_register
             instr = 19 # NOP
-            mem_out = 15
+            mem_out = ((pc_register >> 2) << 38) + 31
 
             outf.write(f"{mem_busy:032b}\n")
             outf.write(f"{pc_out:016b}\n")
@@ -90,7 +90,7 @@ if __name__ == "__main__":
             mem_busy = 0
             pc_out = pc_register
             instr = mem_in
-            mem_out = 15
+            mem_out = ((pc_register >> 2) << 38) + 31
 
             outf.write(f"{mem_busy:032b}\n")
             outf.write(f"{pc_out:016b}\n")
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             mem_busy = 0
             pc_out = pc_register
             instr = 19 # NOP
-            mem_out = 15
+            mem_out = ((pc_register >> 2) << 38) + 31
 
             outf.write(f"{mem_busy:032b}\n")
             outf.write(f"{pc_out:016b}\n")
