@@ -18,11 +18,32 @@ entity regfile is
 end entity;
 
 architecture rtl of regfile is
-	signal test : std_logic;
+	type regfile_registers_t is array (natural range <>) of data_type;
+
+	signal regfile : regfile_registers_t(0 to REG_COUNT-1);
 begin
 
-	if clk = '1' then
-		test <= '1';
-	end if;
-	
+	logic : process(clk, res_n)
+	begin
+		if (res_n = '0') then
+			regfile <= (others => (others => '0'));
+		elsif rising_edge(clk) and stall = '0' then
+			rddata1 <= regfile(to_integer(unsigned(rdaddr1)));
+			rddata2 <= regfile(to_integer(unsigned(rdaddr2)));
+
+			if wraddr /= ZERO_REG then
+				regfile(to_integer(unsigned(wraddr))) <= wrdata;
+
+				if regwrite = '1' then
+					if wraddr = rdaddr1 then
+						rddata1 <= wrdata;
+					end if;
+					if wraddr = rdaddr2 then
+						rddata2 <= wrdata;
+					end if;
+				end if;
+			end if;
+		end if;
+	end process;
+
 end architecture;

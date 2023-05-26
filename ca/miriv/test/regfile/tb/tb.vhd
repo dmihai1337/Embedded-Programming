@@ -141,7 +141,7 @@ begin
 		wait until rising_edge(clk);
 		res_n <= '1';
 		
-		file_open(fstatus, input_file, "testdata/input.txt", READ_MODE);
+		file_open(fstatus, input_file, "testdata/input-py.txt", READ_MODE);
 		
 		timeout(1, CLK_PERIOD);
 
@@ -157,7 +157,7 @@ begin
 		variable fstatus: file_open_status;
 		variable output_ref : output_t;
 	begin
-		file_open(fstatus, output_ref_file, "testdata/output.txt", READ_MODE);
+		file_open(fstatus, output_ref_file, "testdata/output-py.txt", READ_MODE);
 
 		wait until res_n = '1';
 		timeout(1, CLK_PERIOD);
