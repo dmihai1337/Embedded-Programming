@@ -33,7 +33,7 @@ begin
 
 	logic : process(clk, res_n)
 	begin
-		if (res_n = '0') then
+		if res_n = '0' then
 			pc_register <= ZERO_PC;
 			
 		elsif rising_edge(clk) then

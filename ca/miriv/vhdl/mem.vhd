@@ -49,5 +49,79 @@ entity mem is
 end entity;
 
 architecture rtl of mem is
+
+	type reg_t is record
+		mem_op : mem_op_type;
+		wbop : wb_ob_type;
+		pc_new : pc_type;
+		pc_old : pc_type;
+		aluresult : data_type;
+		zero : std_logic;
+		mem_in : mem_in_type;
+		wrdata : data_type;
+		memresult : data_type;
+	end record;
+
+	constant REG_RESET : reg_t := (MEM_NOP, WB_NOP, PC_ZERO, PC_ZERO, (others => '0'), 
+	                              '0', MEM_IN_NOP, (others => '0'), (others => '0'));
+
+	signal reg : reg_t;
 begin
+
+	memu_inst : entity work.memu(rtl)
+	port map (
+		op     => reg.mem_op.mem,
+		A      => aluresult,
+		W      => reg.wrdata,
+		R      => reg.memresult,
+
+		B      => mem_busy,
+		XL     => exc_load,
+		XS     => exc_store,
+
+		-- to memory controller
+		D      => mem_in,
+		M      => mem_out
+	);
+
+	logic : process(clk, res_n)
+	begin
+		if res_n = '0' then
+			reg <= REG_RESET;
+		elsif rising_edge(clk) then
+			if stall = '0'then
+				reg.pc_new <= pc_new_in;
+				reg.pc_old <= pc_old_in;
+				reg.aluresult <= aluresult_in;
+				reg.zero <= zero;
+				reg.mem_in <= mem_in;
+				reg.wrdata <= wrdata;
+				reg.memresult <= mem_result;
+
+				if flush = '0' then
+					reg.mem_op <= mem_op;
+					reg.wbop <= wbop_in;
+				else
+					reg.mem_op <= MEM_NOP;
+					reg.wbop <= WB_NOP;
+				end if;
+			else
+				reg.mem_op.memwrite <= '0';
+				reg.mem_op.memread <= '0';
+
+				if flush = '1' then
+					reg.mem_op <= MEM_NOP;
+					reg.wbop <= WB_NOP;
+				end if;
+			end if;
+		end if;
+	end process;
+
+	pcsrc <= (reg.mem_op.branch_type /= BR_NOP) and reg.zero;
+	wbop_out <= reg.wbop;
+	pc_new_out <= reg.pc_new;
+	pc_old_out <= reg.pc_old;
+	aluresult_out <= reg.aluresult;
+	reg_write <= ('0', (others => '0'), (others => '0'));
+
 end architecture;
