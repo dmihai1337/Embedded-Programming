@@ -133,7 +133,7 @@ architecture bench of tb is
 
 begin
 
-	memu_inst : entity work.wb
+	wb_inst : entity work.wb
 	port map (
 		clk			 => clk,
 		res_n        => res_n,

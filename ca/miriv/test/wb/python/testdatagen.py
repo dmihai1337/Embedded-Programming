@@ -29,7 +29,7 @@ if __name__ == "__main__":
             op_rd = random.getrandbits(5)
             op_write = random.getrandbits(1)
             op_src = random.getrandbits(1)
-            pc_old_in = random.getrandbits(14)
+            pc_old_in = random.getrandbits(16)
             aluresult = random.getrandbits(32)
             memresult = random.getrandbits(32)
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             inf.write("WBS_ALU\n")
             inf.write(f"{aluresult:032b}\n")
             inf.write(f"{memresult:032b}\n")
-            inf.write(f"{pc_old_in:014b}\n")
+            inf.write(f"{pc_old_in:016b}\n")
             inf.write("\n")
 
             reg_write_reg = op_rd
@@ -57,7 +57,7 @@ if __name__ == "__main__":
             op_rd = random.getrandbits(5)
             op_write = random.getrandbits(1)
             op_src = random.getrandbits(1)
-            pc_old_in = random.getrandbits(14)
+            pc_old_in = random.getrandbits(16)
             aluresult = random.getrandbits(32)
             memresult = random.getrandbits(32)
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
             inf.write("WBS_MEM\n")
             inf.write(f"{aluresult:032b}\n")
             inf.write(f"{memresult:032b}\n")
-            inf.write(f"{pc_old_in:014b}\n")
+            inf.write(f"{pc_old_in:016b}\n")
             inf.write("\n")
 
             reg_write_reg = op_rd
@@ -85,7 +85,7 @@ if __name__ == "__main__":
             op_rd = random.getrandbits(5)
             op_write = random.getrandbits(1)
             op_src = random.getrandbits(1)
-            pc_old_in = random.getrandbits(14)
+            pc_old_in = random.getrandbits(16)
             aluresult = random.getrandbits(32)
             memresult = random.getrandbits(32)
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             inf.write("WBS_OPC\n")
             inf.write(f"{aluresult:032b}\n")
             inf.write(f"{memresult:032b}\n")
-            inf.write(f"{pc_old_in:014b}")
+            inf.write(f"{pc_old_in:016b}")
 
             if i < ROUNDS - 1:
                 inf.write("\n\n")
@@ -111,3 +111,5 @@ if __name__ == "__main__":
 
             if i < ROUNDS - 1:
                 outf.write("\n")
+
+# DATA GENERATED

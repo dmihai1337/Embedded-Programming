@@ -101,7 +101,7 @@ architecture bench of tb is
 
 begin
 
-	memu_inst : entity work.alu
+	alu_inst : entity work.alu
 	port map (
 		op 		=> inp.op,
 		A 		=> inp.A,
