@@ -18,7 +18,7 @@ entity fetch is
 
 		pcsrc      : in  std_logic;
 		pc_in      : in  pc_type;
-		pc_out     : out pc_type := (others => '0');
+		pc_out     : out pc_type;
 		instr      : out instr_type;
 
 		-- memory controller interface
@@ -28,38 +28,58 @@ entity fetch is
 end entity;
 
 architecture rtl of fetch is
-	signal pc_register : pc_type := ZERO_PC;
+	signal pc_next : pc_type;
+	signal instr_nop : std_logic;
+	signal fetch_stall : std_logic;
+	signal first : std_logic;
 begin
 
 	logic : process(clk, res_n)
 	begin
 		if res_n = '0' then
-			pc_register <= ZERO_PC;
-			
+			pc_out <= std_logic_vector(to_signed(-4, PC_WIDTH));
+			instr_nop <= '1';
+			first <= '1';
 		elsif rising_edge(clk) then
-			if stall = '0' then
-				if pcsrc = '1' then
-					pc_register <= pc_in;
-				else
-					pc_register <= std_logic_vector(unsigned(pc_register) + 4);
+			first <= '0';
+			if flush = '1' then
+				instr_nop <= '1';
+			else 
+				if fetch_stall = '0' then
+					instr_nop <= '0';
+					pc_out <= pc_next;
 				end if;
 			end if;
+		end if;
+	end process;
 
-			if flush = '1' then
-				instr <= NOP_INST;
+	fetch_output : process(all)
+	begin
+		mem_out.rd <= not stall;
+		mem_out.wr <= '0';
+		mem_out.address <= pc_next(PC_WIDTH - 1 downto 2);
+
+		if instr_nop = '0' then
+			instr <= mem_in.rddata(7 downto 0) & mem_in.rddata(15 downto 8) & mem_in.rddata(23 downto 16) & mem_in.rddata(31 downto 24);
+		else
+			instr <= NOP_INST;
+		end if;
+
+		pc_next <= pc_out;
+		if fetch_stall = '0' then
+			if pcsrc = '1' then
+				pc_next <= pc_in;
 			else
-				instr <= mem_in.rddata(INSTR_WIDTH-1 downto 0);
+				pc_next <= std_logic_vector(unsigned(pc_out) + 4);
 			end if;
 		end if;
 	end process;
 
 	mem_busy <= mem_in.busy;
-	pc_out <= pc_register;
 
 	mem_out.wrdata <= (others => '0');
 	mem_out.byteena <= (others => '1');
-	mem_out.address <= pc_register(PC_WIDTH - 1 downto 2);
-	mem_out.rd <= '1';
-	mem_out.wr <= '0';
 
+	fetch_stall <= stall and (not first);
+	
 end architecture;

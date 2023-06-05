@@ -115,7 +115,9 @@ begin
 		end if;
 	end process;
 
-	pcsrc <= '1' when (reg.mem_op.branch /= BR_NOP) and reg.zero = '1' else '0';
+	pcsrc <= '1' when ((reg.mem_op.branch = BR_CND) and reg.zero = '1') or  
+					  ((reg.mem_op.branch = BR_CNDI) and reg.zero = '0') or 
+					  reg.mem_op.branch = BR_BR else '0';
 	wbop_out <= reg.wbop;
 	pc_new_out <= reg.pc_new;
 	pc_old_out <= reg.pc_old;

@@ -156,7 +156,7 @@ begin
 
 			end if;
 
-		elsif op.memtype = MEM_H then
+		else
 
 			if A(1 downto 0) = "00" or A(1 downto 0) = "01" then
 
@@ -214,7 +214,7 @@ begin
 				M.wrdata(7 downto 0) <= W(15 downto 8);
 			end if;
 
-		elsif op.memtype = MEM_B xor op.memtype = MEM_BU then
+		else
 
 			if A(1 downto 0) = "00" then
 
@@ -260,7 +260,7 @@ begin
 			M.wr <= op.memwrite;
 		end if;
 
-		M.address <= A(ADDR_WIDTH-1 downto 0);
+		M.address <= A(ADDR_WIDTH+1 downto 2);
 
 		-- BUSY (B) --
 

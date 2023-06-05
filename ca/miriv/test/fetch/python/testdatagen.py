@@ -4,7 +4,7 @@ import random
 import ctypes
 
 if __name__ == "__main__":
-    ROUNDS = 100
+    ROUNDS = 20
     input_file = "../testdata/input.txt"
     output_file = "../testdata/output.txt"
 
@@ -17,6 +17,7 @@ if __name__ == "__main__":
     with open(input_file, "w+") as inf, open(output_file, "w+") as outf:
 
         pc_register = 0
+        pc_register_next = 0
 
         for j in range(0,5):
 
@@ -27,7 +28,7 @@ if __name__ == "__main__":
             for i in range(0,ROUNDS):
                 pcsrc = random.getrandbits(1)
                 pc_in = random.getrandbits(16)
-                mem_in = random.getrandbits(16)
+                mem_in = random.getrandbits(32)
 
                 inf.write(f"{stall:01b}\n")
                 inf.write(f"{flush:01b}\n")
@@ -36,15 +37,20 @@ if __name__ == "__main__":
                 inf.write(f"{mem_in:033b}\n\n")
 
                 mem_busy = 0
-                pc_register = pc_in if pcsrc == 1 else pc_register + 4
-                pc_out = pc_register
-                instr = mem_in
-                mem_out = ((pc_register >> 2) << 38) + 31
+                pc_register_next = pc_in if pcsrc == 1 else pc_register + 4
+                if pc_register != 0 and i == 0:
+                    instr <= 19
+                else:
+                    instr = (mem_in >> 24) + (((mem_in >> 16) & int(0b11111111)) << 8) + (((mem_in >> 8) & int(0b11111111)) << 16) + ((mem_in & int(0b11111111)) << 24)
+                mem_out = ((pc_register_next >> 2) << 38) + 31
 
                 outf.write(f"{mem_busy:032b}\n")
-                outf.write(f"{pc_out:016b}\n")
-                outf.write(f"{instr:016b}\n")
+                outf.write(f"{pc_register:016b}\n")
+                outf.write(f"{instr:032b}\n")
                 outf.write(f"{mem_out:052b}\n\n")
+
+                if i < ROUNDS - 1:
+                    pc_register = pc_register_next
 
             # flush one time
 
@@ -62,13 +68,12 @@ if __name__ == "__main__":
             inf.write(f"{mem_in:033b}\n\n")
 
             mem_busy = 0
-            pc_register = pc_in if pcsrc == 1 else pc_register + 4
-            pc_out = pc_register
+            pc_register_next = pc_in if pcsrc == 1 else pc_register + 4
             instr = 19 # NOP
-            mem_out = ((pc_register >> 2) << 38) + 31
+            mem_out = ((pc_register_next >> 2) << 38) + 31
 
             outf.write(f"{mem_busy:032b}\n")
-            outf.write(f"{pc_out:016b}\n")
+            outf.write(f"{pc_register:016b}\n")
             outf.write(f"{instr:016b}\n")
             outf.write(f"{mem_out:052b}\n\n")
 
@@ -88,12 +93,11 @@ if __name__ == "__main__":
             inf.write(f"{mem_in:033b}\n\n")
 
             mem_busy = 0
-            pc_out = pc_register
-            instr = mem_in
-            mem_out = ((pc_register >> 2) << 38) + 31
+            instr = (mem_in >> 24) + (((mem_in >> 16) & int(0b11111111)) << 8) + (((mem_in >> 8) & int(0b11111111)) << 16) + ((mem_in & int(0b11111111)) << 24)
+            mem_out = ((pc_register_next >> 2) << 38) + 15
 
             outf.write(f"{mem_busy:032b}\n")
-            outf.write(f"{pc_out:016b}\n")
+            outf.write(f"{pc_register_next:016b}\n")
             outf.write(f"{instr:016b}\n")
             outf.write(f"{mem_out:052b}\n\n")
 
@@ -116,21 +120,17 @@ if __name__ == "__main__":
                 inf.write("\n\n")
 
             mem_busy = 0
-            pc_out = pc_register
             instr = 19 # NOP
-            mem_out = ((pc_register >> 2) << 38) + 31
+            mem_out = ((pc_register_next >> 2) << 38) + 15
 
             outf.write(f"{mem_busy:032b}\n")
-            outf.write(f"{pc_out:016b}\n")
+            outf.write(f"{pc_register_next:016b}\n")
             outf.write(f"{instr:016b}\n")
             outf.write(f"{mem_out:052b}")
 
             if j < 4:
                 outf.write("\n\n")
 
-# DATA GENERATED
+            pc_register = pc_register_next
 
-        
-        
-        
-        
+# DATA GENERATED

@@ -21,5 +21,156 @@ entity pipeline is
 end entity;
 
 architecture impl of pipeline is
+	signal stall : std_logic;
+	signal flush : std_logic;
+
+	signal fetch_busy : std_logic;
+	signal mem_busy : std_logic;
+
+	-- fetch out signals
+	signal fetch_decode_pc : pc_type;
+	signal fetch_decode_instr : instr_type;
+
+	-- decode out signals
+	signal decode_exec_pc : pc_type;
+	signal decode_exec_op : exec_op_type;
+	signal decode_exec_mem_op : mem_op_type;
+	signal decode_exec_wb_op : wb_op_type;
+
+	-- exec out signals
+	signal exec_mem_pc_old : pc_type;
+	signal exec_mem_pc_new : pc_type;
+	signal exec_mem_aluresult : data_type;
+	signal exec_mem_wrdata : data_type;
+	signal exec_mem_zero : std_logic;
+	signal exec_mem_op : mem_op_type;
+	signal exec_mem_wbop : wb_op_type;
+
+	-- mem out signals
+	signal mem_fetch_pc_new : pc_type;
+	signal mem_fetch_pcsrc : std_logic;
+	signal mem_wb_op : wb_op_type;
+	signal mem_wb_pc_old : pc_type;
+	signal mem_wb_aluresult : data_type;
+	signal mem_wb_memresult : data_type;
+
+	-- writeback out signals
+	signal wb_decode_reg_write : reg_write_type;
+
 begin
+	flush <= '0';
+	stall <= fetch_busy or mem_busy;
+
+	fetch_inst : entity work.fetch
+	port map (
+		clk => clk,
+		res_n => res_n,
+		stall => stall,
+		flush => flush,
+		-- to ctrl
+		mem_busy => fetch_busy,
+		-- from mem
+		pcsrc => mem_fetch_pcsrc,
+		pc_in => mem_fetch_pc_new,
+		-- to decode
+		pc_out => fetch_decode_pc,
+		instr => fetch_decode_instr,
+		-- to external IMEM
+		mem_out => mem_i_out, 
+		mem_in => mem_i_in
+	);
+
+	decode_inst : entity work.decode
+	port map (
+		clk => clk,
+		res_n => res_n,
+		stall => stall,
+		flush => flush,
+		-- from fetch
+		pc_in => fetch_decode_pc,
+		instr => fetch_decode_instr,
+		-- from writeback
+		reg_write => wb_decode_reg_write,
+		-- to exec
+		pc_out => decode_exec_pc,
+		exec_op => decode_exec_op,
+		mem_op => decode_exec_mem_op,
+		wb_op => decode_exec_wb_op,
+		exc_dec => open
+	);
+
+	execute_inst : entity work.exec
+	port map (
+		clk => clk,
+		res_n => res_n,
+		stall => stall,
+		flush => flush,
+		-- from decode
+		op => decode_exec_op,
+		pc_in => decode_exec_pc,
+		memop_in => decode_exec_mem_op,
+		wbop_in => decode_exec_wb_op,
+		-- to mem
+		pc_old_out => exec_mem_pc_old,
+		pc_new_out => exec_mem_pc_new,
+		aluresult => exec_mem_aluresult,
+		wrdata => exec_mem_wrdata,
+		zero => exec_mem_zero,
+		memop_out => exec_mem_op,
+		wbop_out => exec_mem_wbop,
+		-- fwd
+		exec_op => open,
+		reg_write_mem => REG_WRITE_ZERO,
+		reg_write_wr => REG_WRITE_ZERO
+	);
+
+	memory_inst : entity work.mem
+	port map (
+		clk => clk,
+		res_n => res_n,
+		stall => stall,
+		flush => flush,
+		-- to ctrl
+		mem_busy => mem_busy,
+		-- from exec
+		mem_op => exec_mem_op,
+		wbop_in => exec_mem_wbop,
+		pc_new_in => exec_mem_pc_new,
+		pc_old_in => exec_mem_pc_old,
+		aluresult_in => exec_mem_aluresult,
+		wrdata => exec_mem_wrdata,
+		zero => exec_mem_zero,
+		-- to exec (fwd)
+		reg_write => open,
+		-- to fetch
+		pc_new_out => mem_fetch_pc_new,
+		pcsrc => mem_fetch_pcsrc,
+		-- to writeback 
+		wbop_out => mem_wb_op,
+		pc_old_out => mem_wb_pc_old,
+		aluresult_out => mem_wb_aluresult,
+		memresult => mem_wb_memresult,
+		-- to external DMEM
+		mem_out => mem_d_out,
+		mem_in => mem_d_in,
+		-- exceptions
+		exc_load => open,
+		exc_store => open
+	);
+
+	writeback_inst : entity work.wb
+	port map (
+		clk => clk,
+		res_n => res_n,
+		stall => stall,
+		flush => flush,
+		-- from mem
+		op => mem_wb_op,
+		aluresult => mem_wb_aluresult,
+		memresult => mem_wb_memresult,
+		pc_old_in => mem_wb_pc_old,
+		-- to decode and fwd
+		reg_write => wb_decode_reg_write
+	);
+
 end architecture;

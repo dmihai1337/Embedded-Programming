@@ -109,4 +109,10 @@ package op_pkg is
 		data     : data_type;
 	end record;
 
+	constant REG_WRITE_ZERO : reg_write_type := (
+		write => '0',
+		reg => ZERO_REG,
+		data => ZERO_DATA
+	);
+
 end package;

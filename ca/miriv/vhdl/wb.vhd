@@ -25,26 +25,45 @@ entity wb is
 end entity;
 
 architecture rtl of wb is
-	constant REG_WR_RESET : reg_write_type := ('0', ZERO_REG, (others => '0'));
-	signal reg_write_reg : reg_write_type := REG_WR_RESET;
+	type reg_t is record
+		op : wb_op_type;
+		aluresult : data_type;
+		memresult : data_type;
+		pc_old_in : pc_type;
+	end record;
+
+	constant REG_RESET : reg_t := (WB_NOP, (others => '0'), (others => '0'), (others => '0'));
+	signal reg : reg_t := REG_RESET;
 begin
 
-	logic : process(clk, res_n)
+	sync : process(clk, res_n, stall)
 	begin
 		if res_n = '0' then
-			reg_write_reg <= REG_WR_RESET;
-		elsif rising_edge(clk) and stall = '0' then
-			case op.src is
-				when WBS_ALU => reg_write_reg.data <= aluresult;
-				when WBS_MEM => reg_write_reg.data <= memresult;
-				when WBS_OPC => reg_write_reg.data <= std_logic_vector(resize(unsigned(pc_old_in) + 4, DATA_WIDTH));
-			end case;
-		
-			reg_write_reg.reg <= op.rd;
-			reg_write_reg.write <= op.write;
+			reg <= REG_RESET;
+		elsif rising_edge(clk) then
+			if stall = '0' then
+				reg.op <= op;
+				reg.aluresult <= aluresult;
+				reg.memresult <= memresult;
+				reg.pc_old_in <= pc_old_in;
+			end if;
 		end if;
 	end process;
-	
-	reg_write <= reg_write_reg;
+
+	logic : process(all)
+	begin
+		case reg.op.src is
+			when WBS_ALU => reg_write.data <= reg.aluresult;
+			when WBS_MEM => 
+				if stall = '0' then
+					reg_write.data <= memresult;
+				else 
+					reg_write.data <= reg.memresult;
+				end if;
+			when WBS_OPC => reg_write.data <= std_logic_vector(resize(unsigned(reg.pc_old_in) + 4, DATA_WIDTH));
+		end case;
+		reg_write.reg <= reg.op.rd;
+		reg_write.write <= reg.op.write;
+	end process;
 
 end architecture;

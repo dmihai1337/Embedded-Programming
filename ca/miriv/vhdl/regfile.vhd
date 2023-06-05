@@ -23,7 +23,7 @@ architecture rtl of regfile is
 	signal regfile : regfile_registers_t(0 to REG_COUNT-1);
 begin
 
-	logic : process(clk, res_n)
+	logic : process(clk, res_n, stall)
 	begin
 		if (res_n = '0') then
 			regfile <= (others => (others => '0'));

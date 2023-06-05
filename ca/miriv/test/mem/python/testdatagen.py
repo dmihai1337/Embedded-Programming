@@ -110,7 +110,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -120,7 +120,7 @@ if __name__ == "__main__":
                 exc_store = not (((aluresult_in >> 1) & 1) == 0 and (aluresult_in & 1) == 0)
                 membusy = memin_busy 
                 memresult = int("0b11111111000000001111111100000000", 2)
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2 
                 memout_rd = mem_op_memrd if exc_store == 0 else 0
                 memout_wr = mem_op_memwr if exc_store == 0 else 0
                 memout_byteena = 15
@@ -177,7 +177,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -187,7 +187,7 @@ if __name__ == "__main__":
                 exc_store = 0
                 membusy = memin_busy or (not (exc_load or exc_store))
                 memresult = int("0b11111111000000001111111100000000", 2)
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd if exc_load == 0 else 0
                 memout_wr = mem_op_memwr if exc_load == 0 else 0
                 memout_byteena = 15
@@ -257,7 +257,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -266,7 +266,7 @@ if __name__ == "__main__":
                 exc_load =  not ((aluresult_in & 1) == 0)
                 exc_store = 0
                 membusy = memin_busy or (not (exc_load or exc_store))
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd if exc_load == 0 else 0
                 memout_wr = mem_op_memwr if exc_load == 0 else 0
 
@@ -330,7 +330,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -339,7 +339,7 @@ if __name__ == "__main__":
                 exc_load = 0
                 exc_store = not ((aluresult_in & 1) == 0)
                 membusy = memin_busy
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd if exc_store == 0 else 0
                 memout_wr = mem_op_memwr if exc_store == 0 else 0
 
@@ -416,7 +416,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -425,7 +425,7 @@ if __name__ == "__main__":
                 exc_load = not ((aluresult_in & 1) == 0)
                 exc_store = 0
                 membusy = memin_busy or not (exc_load or exc_store)
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd if exc_load == 0 else 0
                 memout_wr = mem_op_memwr if exc_load == 0 else 0
 
@@ -489,7 +489,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -498,7 +498,7 @@ if __name__ == "__main__":
                 exc_load = 0
                 exc_store = not ((aluresult_in & 1) == 0)
                 membusy = memin_busy
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd if exc_store == 0 else 0
                 memout_wr = mem_op_memwr if exc_store == 0 else 0
 
@@ -575,7 +575,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -584,7 +584,7 @@ if __name__ == "__main__":
                 exc_load = 0
                 exc_store = 0
                 membusy = memin_busy or mem_op_memrd
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd
                 memout_wr = mem_op_memwr
 
@@ -659,7 +659,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -668,7 +668,7 @@ if __name__ == "__main__":
                 exc_load = 0
                 exc_store = 0
                 membusy = memin_busy or mem_op_memrd
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd
                 memout_wr = mem_op_memwr
 
@@ -756,7 +756,7 @@ if __name__ == "__main__":
                 reg_write_reg = 0
                 reg_write_data = 0
                 pc_new_out = pc_new_in
-                pcsrc = (mem_op_branch != 0) and zero
+                pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
                 aluresult_out = aluresult_in
                 wbop_rd_out = wbop_rd
@@ -765,7 +765,7 @@ if __name__ == "__main__":
                 exc_load = 0
                 exc_store = 0
                 membusy = memin_busy or mem_op_memrd
-                memout_addr = aluresult_in
+                memout_addr = aluresult_in >> 2
                 memout_rd = mem_op_memrd
                 memout_wr = mem_op_memwr
 
@@ -845,7 +845,7 @@ if __name__ == "__main__":
                     reg_write_reg = 0
                     reg_write_data = 0
                     pc_new_out = pc_new_reg
-                    pcsrc = (mem_op_branch_reg != 0) and zero_reg
+                    pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                     pc_old_out = pc_old_reg
                     aluresult_out = aluresult_reg
                     wbop_rd_out = wbop_rd_reg
@@ -854,7 +854,7 @@ if __name__ == "__main__":
                     exc_load = 0
                     exc_store = 0
                     membusy = memin_busy
-                    memout_addr = aluresult_reg
+                    memout_addr = aluresult_reg >> 2
                     memout_rd = 0
                     memout_wr = 0
                 else:
@@ -862,7 +862,7 @@ if __name__ == "__main__":
                     reg_write_reg = 0
                     reg_write_data = 0
                     pc_new_out = pc_new_in
-                    pcsrc = (mem_op_branch != 0) and zero
+                    pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                     pc_old_out = pc_old_in
                     aluresult_out = aluresult_in
                     wbop_rd_out = wbop_rd
@@ -871,7 +871,7 @@ if __name__ == "__main__":
                     exc_load = 0
                     exc_store = 0
                     membusy = memin_busy or mem_op_memrd
-                    memout_addr = aluresult_in
+                    memout_addr = aluresult_in >> 2
                     memout_rd = mem_op_memrd
                     memout_wr = mem_op_memwr
 
