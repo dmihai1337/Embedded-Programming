@@ -47,6 +47,9 @@ begin
 				reg.memresult <= memresult;
 				reg.pc_old_in <= pc_old_in;
 			end if;
+			if flush = '1' then
+				reg.op <= WB_NOP;
+			end if;
 		end if;
 	end process;
 
@@ -54,12 +57,7 @@ begin
 	begin
 		case reg.op.src is
 			when WBS_ALU => reg_write.data <= reg.aluresult;
-			when WBS_MEM => 
-				if stall = '0' then
-					reg_write.data <= memresult;
-				else 
-					reg_write.data <= reg.memresult;
-				end if;
+			when WBS_MEM => reg_write.data <= reg.memresult;
 			when WBS_OPC => reg_write.data <= std_logic_vector(resize(unsigned(reg.pc_old_in) + 4, DATA_WIDTH));
 		end case;
 		reg_write.reg <= reg.op.rd;

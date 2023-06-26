@@ -106,9 +106,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -173,9 +173,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -253,9 +253,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -326,9 +326,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -412,9 +412,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -485,9 +485,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -571,9 +571,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -655,9 +655,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -752,9 +752,9 @@ if __name__ == "__main__":
                 inf.write(f"{memin_data:032b}\n")
                 inf.write("\n")
 
-                reg_write_write = 0
-                reg_write_reg = 0
-                reg_write_data = 0
+                reg_write_write = wbop_wr
+                reg_write_reg = wbop_rd
+                reg_write_data = aluresult_in
                 pc_new_out = pc_new_in
                 pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                 pc_old_out = pc_old_in
@@ -841,9 +841,8 @@ if __name__ == "__main__":
                     stall = 0
 
                 if i == 1:
-                    reg_write_write = 0
-                    reg_write_reg = 0
-                    reg_write_data = 0
+                    reg_write_write = wbop_wr
+                    reg_write_reg = wbop_rd
                     pc_new_out = pc_new_reg
                     pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                     pc_old_out = pc_old_reg
@@ -858,9 +857,9 @@ if __name__ == "__main__":
                     memout_rd = 0
                     memout_wr = 0
                 else:
-                    reg_write_write = 0
-                    reg_write_reg = 0
-                    reg_write_data = 0
+                    reg_write_write = wbop_wr
+                    reg_write_reg = wbop_rd
+                    reg_write_data = aluresult_in
                     pc_new_out = pc_new_in
                     pcsrc = ((mem_op_branch == 2) and zero) or ((mem_op_branch == 3) and not zero) or mem_op_branch == 1
                     pc_old_out = pc_old_in

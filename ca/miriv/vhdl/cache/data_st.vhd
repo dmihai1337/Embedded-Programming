@@ -27,4 +27,19 @@ end entity;
 
 architecture impl of data_st is
 begin
+
+	single_clock_rw_ram : single_clock_rw_ram
+	generic map (
+		ADDR_WIDTH     => ADDR_WIDTH,
+		DATA_WIDTH     => DATA_WIDTH
+	)
+	port map (
+		clk            => clk,
+		data_in        => data_in,
+		write_address  => index
+		read_address   => index
+		we             => we,
+		data_out       => data_out,
+	);
+
 end architecture;

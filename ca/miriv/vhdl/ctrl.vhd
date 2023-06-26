@@ -34,4 +34,41 @@ end entity;
 
 architecture rtl of ctrl is
 begin
+
+	pcsrc_out <= pcsrc_in;
+
+	ctrl_logic : process(all)
+	begin
+		stall_fetch <= '0';
+		stall_dec   <= '0';
+		stall_exec  <= '0';
+		stall_mem   <= '0';
+		stall_wb    <= '0';
+		flush_fetch <= '0';
+		flush_dec   <= '0';
+		flush_exec  <= '0';
+		flush_mem   <= '0';
+		flush_wb    <= '0';
+
+		if stall = '1' then
+			stall_fetch <= '1';
+			stall_dec   <= '1';
+			stall_exec  <= '1';
+			stall_mem   <= '1';
+			stall_wb    <= '1';
+		elsif pcsrc_in = '1' then
+			-- Branch Hazard
+			-- fetch, decode and execute stages already hold instructions that follow the branch
+			flush_dec <= '1';
+			flush_exec <= '1';
+			flush_mem <= '1';
+		elsif wb_op_exec.src = WBS_MEM and wb_op_exec.write = '1' and wb_op_exec.rd /= ZERO_REG then
+			if wb_op_exec.rd = exec_op_dec.rs1 or wb_op_exec.rd = exec_op_dec.rs2 then
+				stall_fetch <= '1';
+				stall_dec <= '1';
+				flush_exec <= '1';
+			end if;
+		end if;
+
+	end process;
 end architecture;

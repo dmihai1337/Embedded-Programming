@@ -14,7 +14,7 @@ QXP_FILE=output_files/$(PROJECT_NAME).qxp
 
 SOURCEFILES=$(shell grep VHDL_FILE $(PROJECT_NAME).qsf | grep -v "^\#" | sed 's/.*VHDL_FILE//g')
 
-RPA_SHELL=../../../rpa_tools/rpa_shell.py
+RPA_SHELL=../../../../../rpa_tools/rpa_shell.py
 
 all: $(SOF_FILE)
 pack: $(QXP_FILE)
@@ -64,6 +64,10 @@ remote_minicom:
 remote_run_helloworld:
 	make -C ../software/c/
 	make remote_run IMEM=../software/c/helloworld.imem.mif DMEM=../software/c/helloworld.dmem.mif
+
+remote_run_md5:
+	make -C ../software/c/
+	make remote_run IMEM=../software/c/md5.imem.mif DMEM=../software/c/md5.dmem.mif
 endif
 
 clean:
@@ -84,6 +88,7 @@ clean:
 	rm -f *.summary
 	rm -f *.qdf
 	rm -f *.qws
+	rm -f BUILD_*
 	rm -f *.qarlog
 
 .PHONY: all quartus_gui download clean pack

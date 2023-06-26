@@ -45,6 +45,10 @@ architecture rtl of exec is
 	signal alu_b : data_type;
 	signal alu_r : data_type;
 	signal alu_z : std_logic;
+
+	-- forwarding
+	signal fwdA, fwdB : std_logic;
+	signal valA, valB : data_type;
 begin
 
 	exec_sync : process(clk, res_n)
@@ -71,7 +75,7 @@ begin
 
 	exec_output : process(all)
 	begin
-		-- exec_op not used
+		-- forwarding
 		exec_op <= EXEC_NOP;
 
 		-- pass through
@@ -79,7 +83,12 @@ begin
 		wbop_out <= dec_wbop;
 
 		-- store instructions only use rs2
-		wrdata <= dec_execop.readdata2;
+
+		if fwdB = '1' then
+			wrdata <= valB;
+		else
+			wrdata <= dec_execop.readdata2;
+		end if;
 
 		-- calculate new pc
 		pc_old_out <= std_logic_vector(unsigned(dec_pc_in));
@@ -89,24 +98,39 @@ begin
 		zero <= alu_z;
 
 		-- connect alu inputs
+
+		-- ADDED FORWARDING
+
 		if dec_execop.alusrc1 = '0' then
-			alu_a <= dec_execop.readdata1;
+			if fwdA = '1' then
+				alu_a <= valA;
+			else
+				alu_a <= dec_execop.readdata1;
+			end if;
 		else
 			alu_a <= std_logic_vector(resize(unsigned(dec_pc_in), alu_a'length));
 		end if;
 
 		if dec_execop.alusrc2 = '0' then
-			alu_b <= dec_execop.readdata2;
+			if fwdB = '1' then
+				alu_b <= valB;
+			else
+				alu_b <= dec_execop.readdata2;
+			end if;
 		else
 			alu_b <= dec_execop.imm;
 		end if;
 
+		
 		if dec_execop.alusrc3 = '0' then
 			pc_new_out <= to_pc_type(std_logic_vector(signed(dec_execop.imm) + signed('0' & dec_pc_in)));
 		else
-			pc_new_out <= to_pc_type(std_logic_vector(signed(dec_execop.imm) + signed(dec_execop.readdata1))) and not (ZERO_PC(pc_type'length-1 downto 1) & '1');
+			if fwdA = '1' then
+				pc_new_out <= to_pc_type(std_logic_vector(signed(dec_execop.imm) + signed(valA))) and not (ZERO_PC(pc_type'length-1 downto 1) & '1');
+			else
+				pc_new_out <= to_pc_type(std_logic_vector(signed(dec_execop.imm) + signed(dec_execop.readdata1))) and not (ZERO_PC(pc_type'length-1 downto 1) & '1');
+			end if;
 		end if;
-
 	end process;
 
 	alu_inst : entity work.alu
@@ -117,4 +141,25 @@ begin
 		R => alu_r,
 		Z => alu_z
 	);
+
+	-- FORWARDING UNITS FOR EACH REGISTER
+
+	forwardA_inst : entity work.fwd
+	port map(
+		reg_write_mem => reg_write_mem,
+		reg_write_wb  => reg_write_wr,
+		reg           => dec_execop.rs1,
+		val           => valA,
+		do_fwd        => fwdA
+	);
+
+	forwardB_inst : entity work.fwd
+	port map(
+		reg_write_mem => reg_write_mem,
+		reg_write_wb  => reg_write_wr,
+		reg           => dec_execop.rs2,
+		val           => valB,
+		do_fwd        => fwdB
+	);
+
 end architecture;

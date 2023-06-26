@@ -39,7 +39,7 @@ send_char:
 		nop
 		nop
 		nop
-		sb   a5,-4(x0) #write data
+		sb  a5,-4(x0) #write data
 		nop
 		nop
 		nop

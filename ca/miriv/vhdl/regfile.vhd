@@ -21,29 +21,45 @@ architecture rtl of regfile is
 	type regfile_registers_t is array (natural range <>) of data_type;
 
 	signal regfile : regfile_registers_t(0 to REG_COUNT-1);
+
+	-- Address Registers
+	signal rdaddr1_sync : natural range 0 to REG_COUNT-1;
+	signal rdaddr2_sync : natural range 0 to REG_COUNT-1; 
 begin
 
-	logic : process(clk, res_n, stall)
+	regfile_sync : process(clk, res_n)
 	begin
 		if (res_n = '0') then
 			regfile <= (others => (others => '0'));
-		elsif rising_edge(clk) and stall = '0' then
-			rddata1 <= regfile(to_integer(unsigned(rdaddr1)));
-			rddata2 <= regfile(to_integer(unsigned(rdaddr2)));
+			rdaddr1_sync <= 0;
+			rdaddr2_sync <= 0;
+		elsif rising_edge(clk) then
+			if stall = '0' then
+				rdaddr1_sync <= to_integer(unsigned(rdaddr1));
+				rdaddr2_sync <= to_integer(unsigned(rdaddr2));
+			end if;
 
-			if wraddr /= ZERO_REG then
+			-- FWD: Allow writing during stall
+			if regwrite = '1' and wraddr /= ZERO_REG then
 				regfile(to_integer(unsigned(wraddr))) <= wrdata;
-
-				if regwrite = '1' then
-					if wraddr = rdaddr1 then
-						rddata1 <= wrdata;
-					end if;
-					if wraddr = rdaddr2 then
-						rddata2 <= wrdata;
-					end if;
-				end if;
 			end if;
 		end if;
 	end process;
+
+	regfile_logic : process(all)
+	begin
+		rddata1 <= regfile(rdaddr1_sync);
+		rddata2 <= regfile(rdaddr2_sync);
+
+		if stall = '0' and regwrite = '1' and wraddr /= ZERO_REG then
+			if to_integer(unsigned(wraddr)) = rdaddr1_sync then
+				rddata1 <= wrdata;
+			end if;
+			if to_integer(unsigned(wraddr)) = rdaddr2_sync then
+				rddata2 <= wrdata;
+			end if;
+		end if;
+	end process;
+
 
 end architecture;

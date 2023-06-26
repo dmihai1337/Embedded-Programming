@@ -34,5 +34,30 @@ begin
 end architecture;
 
 architecture impl of cache is
+	type fsm_state_t is (IDLE, READ_CACHE, READ_MEM_START, READ_MEM, WRITE_BACK_START, WRITE_BACK);
+	
+	type state_t is record
+		fsm_state : fsm_state_t;
+	end record;
 begin
+	sync : process(clk, res_n)
+	begin
+		-- if res_n = '0' then
+		-- elsif rising_edge(clk) then
+		-- end if;
+	end process;
+	
+	logic : process(all)
+	begin
+		-- state_nxt <= state;
+
+		-- case state.fsm_state is
+		-- 	when IDLE =>
+		-- 	when READ_CACHE =>
+		-- 	when READ_MEM_START =>
+		-- 	when READ_MEM =>
+		-- 	when WRITE_BACK_START =>
+		-- 	when WRITE_BACK =>
+		-- end case;
+	end process;
 end architecture;

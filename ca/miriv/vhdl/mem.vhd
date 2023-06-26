@@ -57,12 +57,11 @@ architecture rtl of mem is
 		pc_old : pc_type;
 		aluresult : data_type;
 		zero : std_logic;
-		mem_in : mem_in_type;
 		wrdata : data_type;
 	end record;
 
 	constant REG_RESET : reg_t := (MEM_NOP, WB_NOP, ZERO_PC, ZERO_PC, (others => '0'), 
-	                              '0', MEM_IN_NOP, (others => '0'));
+	                              '0', (others => '0'));
 
 	signal reg : reg_t;
 begin
@@ -79,7 +78,7 @@ begin
 		XS     => exc_store,
 
 		-- to memory controller
-		D      => reg.mem_in,
+		D      => mem_in,
 		M      => mem_out
 	);
 
@@ -93,7 +92,6 @@ begin
 				reg.pc_old <= pc_old_in;
 				reg.aluresult <= aluresult_in;
 				reg.zero <= zero;
-				reg.mem_in <= mem_in;
 				reg.wrdata <= wrdata;
 
 				if flush = '0' then
@@ -122,6 +120,6 @@ begin
 	pc_new_out <= reg.pc_new;
 	pc_old_out <= reg.pc_old;
 	aluresult_out <= reg.aluresult;
-	reg_write <= ('0', (others => '0'), (others => '0'));
+	reg_write <= (reg.wbop.write, reg.wbop.rd, reg.aluresult);
 
 end architecture;
