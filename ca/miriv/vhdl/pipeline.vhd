@@ -22,7 +22,7 @@ end entity;
 
 architecture impl of pipeline is
 	signal stall : std_logic;
-	signal flush : std_logic;
+	signal flush : std_logic := '0';
 
 	signal fetch_busy : std_logic;
 	signal mem_busy : std_logic;
@@ -72,7 +72,6 @@ architecture impl of pipeline is
 	signal wb_decode_reg_write : reg_write_type;
 
 begin
-	flush <= '0';
 	stall <= fetch_busy or mem_busy;
 
 	ctrl_inst : entity work.ctrl

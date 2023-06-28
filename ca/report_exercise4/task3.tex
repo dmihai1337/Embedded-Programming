@@ -5,26 +5,26 @@
 	\toprule
 	                     & LC Combinationals & LC Registers & Memory Bits \\
 	\midrule
-	Fetch Stage          &                   &              &             \\
-	Decode Stage         &                   &              &             \\
-	-- Register File     &                   &              &             \\
-	Execute Stage        &                   &              &             \\
-	-- ALU               &                   &              &             \\
-	Memory Stage         &                   &              &             \\
-	-- Memory Unit       &                   &              &             \\
-	Write-Back Stage     &                   &              &             \\
-	Forwarding Unit      &                   &              &             \\
-	Control Unit         &                   &              &             \\
+	Fetch Stage          &         52        &     18       &       0      \\
+	Decode Stage         &         158       &     1050     &       0      \\
+	-- Register File     &         47        &     1002     &       0      \\
+	Execute Stage        &         2429      &     154      &       0      \\
+	-- ALU               &         687       &     0        &       0      \\
+	Memory Stage         &         158       &     115      &       0      \\
+	-- Memory Unit       &         83        &     0        &       0      \\
+	Write-Back Stage     &         86        &     89       &       0      \\
+	Forwarding Unit      &         34+5=39   &     0        &       0      \\
+	Control Unit         &         11        &     0        &       0      \\
 	\cmidrule{1-4}
-	Sum                  &                   &              &             \\
+	Sum                  &         2933      &     1426     &       0      \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{qa}
 	\question{What is the maximum frequency of your design?}
-	\answer{83.3 MHz}
+	\answer{82.73 MHz}
 	\question{Where is the critical path of your design?}
-	\answer{From Writeback node, signal reg.op.rd to Memory node, signal reg.aluresult}
+	\answer{The smallest slack denotes the critical path - in our case that is from the reg.aluresult of the memory node to the RAM in the cache data storage.}
 \end{qa}
 
