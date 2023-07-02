@@ -46,7 +46,7 @@ begin
 	uut : fifo_1c1r1w
 		generic map (
 			DEPTH          => DEPTH,
-			DATA_WIDTH         => DATA_WIDTH
+			DATA_WIDTH     => DATA_WIDTH
 		)
 		port map (
 			clk        => clk,
@@ -57,7 +57,7 @@ begin
 			wr         => wr,
 			empty      => empty,
 			full       => full,
-			half_full => half_full
+			half_full  => half_full
 		);
 
 	stimulus : process

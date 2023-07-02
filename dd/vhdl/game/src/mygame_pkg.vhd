@@ -157,66 +157,66 @@ package body mygame_pkg is
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0100000000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010001000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0100101000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;	
 		
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0100011000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 		
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010100000" & std_logic_vector(to_unsigned(8, 6));
@@ -241,44 +241,44 @@ package body mygame_pkg is
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010111000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010001000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0011101000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;	
 		
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
@@ -294,44 +294,44 @@ package body mygame_pkg is
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0011111000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0100110000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0010101000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0100010000" & std_logic_vector(to_unsigned(8, 6));
@@ -357,22 +357,22 @@ package body mygame_pkg is
 		variable lives : integer := l;
 	begin
 		arr(count + 15 downto count) := create_gfx_instr(
-					opcode => OPCODE_BB_CHAR,
-					bmpidx => "010",
-					am => '1',
-					mx => '1'
-				);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0011100000" & std_logic_vector(to_unsigned(8, 6));
 		count := count + 16;
 
 		arr(count + 15 downto count) := create_gfx_instr(
-				opcode => OPCODE_BB_CHAR,
-				bmpidx => "010",
-				am => '1',
-				mx => '1'
-			);
+			opcode => OPCODE_BB_CHAR,
+			bmpidx => "010",
+			am => '1',
+			mx => '1'
+		);
 		count := count + 16;
 
 		arr(count + 15 downto count) := "0011001000" & std_logic_vector(to_unsigned(8, 6));

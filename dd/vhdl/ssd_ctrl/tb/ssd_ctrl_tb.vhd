@@ -31,21 +31,21 @@ begin
 
 	uut : entity work.ssd_ctrl
 		port map (
-			clk         			=> clk,
-			res_n       			=> res_n,
-			hex0        			=> hex0,
-			hex1        			=> hex1,
-			hex2        			=> hex2,
-			hex3        			=> hex3,
-			hex4        			=> hex4,
-			hex5        			=> hex5,
-			hex6        			=> hex6,
-			hex7        			=> hex7,
-			ctrl_data   			=> ctrl_data,
-			sw_enable   	  		=> sw_enable,
-			sw_stick_selector 		=> sw_stick_selector,
-			sw_axis_selector  		=> sw_axis_selector,
-			btn_change_sign_mode_n	=> btn_change_sign_mode_n
+			clk                     => clk,
+			res_n                   => res_n,
+			hex0                    => hex0,
+			hex1                    => hex1,
+			hex2                    => hex2,
+			hex3                    => hex3,
+			hex4                    => hex4,
+			hex5                    => hex5,
+			hex6                    => hex6,
+			hex7                    => hex7,
+			ctrl_data               => ctrl_data,
+			sw_enable               => sw_enable,
+			sw_stick_selector       => sw_stick_selector,
+			sw_axis_selector        => sw_axis_selector,
+			btn_change_sign_mode_n  => btn_change_sign_mode_n
 		);
 
 	stimulus : process

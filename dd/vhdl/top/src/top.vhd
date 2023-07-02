@@ -154,9 +154,9 @@ begin
 
 	myPLL : entity work.myPLL
 	port map (
-		inclk0 => clk,
-		c0		 => audio_clk,
-		c1		 => display_clk
+		inclk0   => clk,
+		c0       => audio_clk,
+		c1       => display_clk
 	);
 
 	system_res_n <= keys_int(0) and sw_reset;
@@ -167,9 +167,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => system_res_n,
+		clk      => clk,
+		res_n    => '1',
+		data_in  => system_res_n,
 		data_out => ssd_res_n
 	);
 	
@@ -179,9 +179,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => switches_int(0),
+		clk      => clk,
+		res_n    => '1',
+		data_in  => switches_int(0),
 		data_out => sw_enable
 	);
 	
@@ -191,9 +191,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => switches_int(1),
+		clk      => clk,
+		res_n    => '1',
+		data_in  => switches_int(1),
 		data_out => sw_stick_selector
 	);
 	
@@ -203,9 +203,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => switches_int(2),
+		clk      => clk,
+		res_n    => '1',
+		data_in  => switches_int(2),
 		data_out => sw_axis_selector
 	);
 	
@@ -215,29 +215,29 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => keys_int(3),
+		clk      => clk,
+		res_n    => '1',
+		data_in  => keys_int(3),
 		data_out => btn_change_sign_mode_n
 	);
 
 	ssd_ctrl : entity work.ssd_ctrl
 	port map (
-		clk						=> clk,
-		res_n					=> ssd_res_n,
-		ctrl_data 				=> ds,
-		sw_enable				=> sw_enable,
-		sw_stick_selector		=> sw_stick_selector,
-		sw_axis_selector		=> sw_axis_selector,
+		clk                     => clk,
+		res_n                   => ssd_res_n,
+		ctrl_data               => ds,
+		sw_enable               => sw_enable,
+		sw_stick_selector       => sw_stick_selector,
+		sw_axis_selector        => sw_axis_selector,
 		btn_change_sign_mode_n	=> btn_change_sign_mode_n,
-		hex0				=> hex0,
-		hex1				=> hex1,
-		hex2				=> hex2,
-		hex3				=> hex3,
-		hex4				=> hex4,
-		hex5				=> hex5,
-		hex6				=> hex6,
-		hex7				=> hex7
+		hex0                    => hex0,
+		hex1                    => hex1,
+		hex2                    => hex2,
+		hex3                    => hex3,
+		hex4                    => hex4,
+		hex5                    => hex5,
+		hex6                    => hex6,
+		hex7                    => hex7
 	);
 
 	reset_sync : sync
@@ -246,9 +246,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => system_res_n,
+		clk      => clk,
+		res_n    => '1',
+		data_in  => system_res_n,
 		data_out => res_n
 	);
 
@@ -258,9 +258,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => audio_clk,
-		res_n => '1',
-		data_in => system_res_n,
+		clk      => audio_clk,
+		res_n    => '1',
+		data_in  => system_res_n,
 		data_out => audio_res_n
 	);
 
@@ -270,9 +270,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => display_clk,
-		res_n => '1',
-		data_in => system_res_n,
+		clk      => display_clk,
+		res_n    => '1',
+		data_in  => system_res_n,
 		data_out => display_res_n
 	);
 
@@ -310,9 +310,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => ds_data,
+		clk      => clk,
+		res_n    => '1',
+		data_in  => ds_data,
 		data_out => ds_data_synched
 	);
 
@@ -322,9 +322,9 @@ begin
 		RESET_VALUE => '0'
 	)
 	port map (
-		clk => clk,
-		res_n => '1',
-		data_in => ds_ack,
+		clk      => clk,
+		res_n    => '1',
+		data_in  => ds_ack,
 		data_out => ds_ack_synched
 	);
 
@@ -462,27 +462,27 @@ begin
 			keys                => keys_int,
 			ledr                => dbg_ledr,
 			ledg                => dbg_ledg,
-			gfx_cmd => dbg_gfx_cmd,
-			gfx_cmd_wr => dbg_gfx_cmd_wr,
-			gfx_cmd_full => gfx_cmd_full,
-			gfx_rd_data => gfx_rd_data,
-			gfx_rd_valid => gfx_rd_valid and gcsc,
-			emulated_ds_state => open,
-			emulated_ds_data  => emulated_ds_data,
-			emulated_ds_cmd   => emulated_ds_cmd,
-			emulated_ds_att   => emulated_ds_att,
-			emulated_ds_ack   => emulated_ds_ack,
-			emulated_ds_clk   => emulated_ds_clk,
-			hex0 => dbg_hex0,
-			hex1 => dbg_hex1,
-			hex2 => dbg_hex2,
-			hex3 => dbg_hex3,
-			hex4 => dbg_hex4,
-			hex5 => dbg_hex5,
-			hex6 => dbg_hex6,
-			hex7 => dbg_hex7,
-			gcsc => gcsc,
-			sw_reset => sw_reset
+			gfx_cmd             => dbg_gfx_cmd,
+			gfx_cmd_wr          => dbg_gfx_cmd_wr,
+			gfx_cmd_full        => gfx_cmd_full,
+			gfx_rd_data         => gfx_rd_data,
+			gfx_rd_valid        => gfx_rd_valid and gcsc,
+			emulated_ds_state   => open,
+			emulated_ds_data    => emulated_ds_data,
+			emulated_ds_cmd     => emulated_ds_cmd,
+			emulated_ds_att     => emulated_ds_att,
+			emulated_ds_ack     => emulated_ds_ack,
+			emulated_ds_clk     => emulated_ds_clk,
+			hex0                => dbg_hex0,
+			hex1                => dbg_hex1,
+			hex2                => dbg_hex2,
+			hex3                => dbg_hex3,
+			hex4                => dbg_hex4,
+			hex5                => dbg_hex5,
+			hex6                => dbg_hex6,
+			hex7                => dbg_hex7,
+			gcsc                => gcsc,
+			sw_reset            => sw_reset
 		);
 	end block;
 end architecture;
