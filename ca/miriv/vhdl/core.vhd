@@ -29,8 +29,8 @@ begin
 
 	pipeline_inst : entity work.pipeline
 	port map (
-		clk => clk,
-		res_n => res_n,
+		clk       => clk,
+		res_n     => res_n,
 		mem_i_out => mem_i_out,
 		mem_i_in  => mem_i_in,
 		mem_d_out => mem_d_out_s,

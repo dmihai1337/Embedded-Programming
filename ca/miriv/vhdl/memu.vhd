@@ -33,12 +33,12 @@ begin
 		-- STORE EXCEPTION (XS) --
 
 		if  (op.memwrite = '1' and op.memtype = MEM_H and A(1 downto 0) = "01") or
-			(op.memwrite = '1' and op.memtype = MEM_H and A(1 downto 0) = "11") or
-			(op.memwrite = '1' and op.memtype = MEM_HU and A(1 downto 0) = "01") or
-			(op.memwrite = '1' and op.memtype = MEM_HU and A(1 downto 0) = "11") or
-			(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "01") or
-			(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "10") or
-			(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "11") then
+		(op.memwrite = '1' and op.memtype = MEM_H and A(1 downto 0) = "11") or
+		(op.memwrite = '1' and op.memtype = MEM_HU and A(1 downto 0) = "01") or
+		(op.memwrite = '1' and op.memtype = MEM_HU and A(1 downto 0) = "11") or
+		(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "01") or
+		(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "10") or
+		(op.memwrite = '1' and op.memtype = MEM_W and A(1 downto 0) = "11") then
 				XS <= '1';
 		else
 				XS <= '0';
@@ -47,12 +47,12 @@ begin
 		-- LOAD EXCEPTION (XL) --
 
 		if  (op.memread = '1' and op.memtype = MEM_H and A(1 downto 0) = "01") or
-			(op.memread = '1' and op.memtype = MEM_H and A(1 downto 0) = "11") or
-			(op.memread = '1' and op.memtype = MEM_HU and A(1 downto 0) = "01") or
-			(op.memread = '1' and op.memtype = MEM_HU and A(1 downto 0) = "11") or
-			(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "01") or
-			(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "10") or
-			(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "11") then
+		(op.memread = '1' and op.memtype = MEM_H and A(1 downto 0) = "11") or
+		(op.memread = '1' and op.memtype = MEM_HU and A(1 downto 0) = "01") or
+		(op.memread = '1' and op.memtype = MEM_HU and A(1 downto 0) = "11") or
+		(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "01") or
+		(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "10") or
+		(op.memread = '1' and op.memtype = MEM_W and A(1 downto 0) = "11") then
 				XL <= '1';
 		else
 				XL <= '0';

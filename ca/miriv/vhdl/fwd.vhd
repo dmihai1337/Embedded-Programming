@@ -28,8 +28,7 @@ begin
 			do_fwd <= '1';
 			val <= reg_write_mem.data;
 		elsif (reg_write_wb.write = '1') and reg_write_wb.reg /= ZERO_REG and 
-		       not ((reg_write_mem.write = '1') and (reg_write_mem.reg /= ZERO_REG) and (reg_write_mem.reg = reg)) and
-			   reg_write_wb.reg = reg then
+		       not ((reg_write_mem.write = '1') and (reg_write_mem.reg /= ZERO_REG) and (reg_write_mem.reg = reg)) and reg_write_wb.reg = reg then
 			do_fwd <= '1';
 			val <= reg_write_wb.data;
 		else
