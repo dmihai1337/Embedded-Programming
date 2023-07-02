@@ -30,18 +30,15 @@ end entity;
 architecture arch of gfx_cmd_interpreter is
 
 	signal state : state_t := (
-		abd => (base => (others => '0'),
-				height => (others => '0'),
-				width => (others => '0')),
-		gp  => (x => (others => '0'),
-				y => (others => '0')),
+		abd => (base => (others => '0'), height => (others => '0'), width => (others => '0')),
+		gp  => (x => (others => '0'), y => (others => '0')),
 		primary_color => (others => '0'),
 		secondary_color => (others => '0'),
 		bdt => (others => (others => (others => '0'))),
-		bbe => (maskop => (others => '0'),
-				mask => (others => '0')),
+		bbe => (maskop => (others => '0'), mask => (others => '0')),
 		curr_out_addr => (others => '0')
 	);
+
 	shared variable vram : vram_t;
 	signal N : integer := 0;
 	shared variable n_seq : integer := 0;
@@ -53,13 +50,13 @@ architecture arch of gfx_cmd_interpreter is
 	shared variable operands_needed : integer := 0;
 	signal command : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
 
-	procedure exec_simple_cmd(	signal state: inout state_t;
-								command : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
-								signal gfx_rd_data: out std_logic_vector(15 downto 0);
-								signal gfx_rd_valid: out std_logic;
-								signal gfx_frame_sync : out std_logic;
-								vram : inout vram_t;
-								signal N : inout integer) is
+	procedure exec_simple_cmd(signal state: inout state_t;
+		command : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+		signal gfx_rd_data: out std_logic_vector(15 downto 0);
+		signal gfx_rd_valid: out std_logic;
+		signal gfx_frame_sync : out std_logic;
+		vram : inout vram_t;
+		signal N : inout integer) is
 		variable code : opcode_t;
 	begin
 		code := get_opcode(command);
@@ -107,11 +104,11 @@ architecture arch of gfx_cmd_interpreter is
 	end procedure;
 
 	procedure exec_cmd(	signal state: inout state_t;
-						command : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
-						operands : operands_t;
-						signal gfx_rd_data: out std_logic_vector(15 downto 0);
-						signal gfx_rd_valid: out std_logic;
-						vram : inout vram_t) is
+		command : std_logic_vector(GFX_CMD_WIDTH-1 downto 0);
+		operands : operands_t;
+		signal gfx_rd_data: out std_logic_vector(15 downto 0);
+		signal gfx_rd_valid: out std_logic;
+		vram : inout vram_t) is
 		variable code : opcode_t;
 	begin
 		code := get_opcode(command);
