@@ -15,7 +15,7 @@ Some tasks include:
 
 <img width="432" alt="Space Invaders Game" src="https://user-images.githubusercontent.com/56593368/236072073-f457df39-364a-48d3-8f39-c79d39d22dd6.png">
 
-* adding pipelining to the processor
+* adding pipelining and a cache system for the processor
 
 This task is solved in groups of 2. In this repository I present the solution which my partner [The5imon](https://github.com/The5imon) and I designed.
 
